@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import neurokit2 as nk
 from scipy.signal import butter, filtfilt, find_peaks
 from scipy.io import wavfile
+from io import BytesIO
 
 # Streamlit App
 st.title("Heart Signal Analysis")
@@ -33,11 +34,12 @@ if uploaded_file is not None:
 
     # Peak Detection
     st.subheader("Peak Detection")
-    height = st.slider("Minimum Peak Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
-    min_distance = st.slider("Minimum Peak Distance (seconds)", min_value=0.1, max_value=1.0, value=0.3, step=0.1)
+    min_height = st.number_input("Minimum Peak Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
+    max_height = st.number_input("Maximum Peak Height", min_value=min_height, max_value=2.0, value=1.0, step=0.01)
+    min_distance = st.number_input("Minimum Peak Distance (seconds)", min_value=0.1, max_value=1.0, value=0.3, step=0.1)
     min_distance_samples = int(min_distance * fs)
 
-    peaks, _ = find_peaks(shannon_energy, height=height, distance=min_distance_samples)
+    peaks, _ = find_peaks(shannon_energy, height=(min_height, max_height), distance=min_distance_samples)
     st.write(f"Detected {len(peaks)} peaks.")
 
     # Plot Signal and Peaks
@@ -48,20 +50,40 @@ if uploaded_file is not None:
     ax.set_xlabel("Samples")
     ax.set_ylabel("Energy")
     ax.legend()
+
+    # Display the plot
     st.pyplot(fig)
 
- # Download Options for Plots
+    # Download Options for Plots
+    buffer = BytesIO()
+    fig.savefig(buffer, format="png")
+    buffer.seek(0)
+
     st.download_button(
         label="Download Shannon Energy Plot",
-        data=fig_energy.to_html(),
-        file_name="shannon_energy_plot.html",
-        mime="text/html"
+        data=buffer,
+        file_name="shannon_energy_plot.png",
+        mime="image/png"
     )
+
+    # Preprocessed Signal Plot
+    fig_signal, ax_signal = plt.subplots()
+    ax_signal.plot(signal, label="Preprocessed Signal")
+    ax_signal.set_title("Preprocessed Signal")
+    ax_signal.set_xlabel("Samples")
+    ax_signal.set_ylabel("Amplitude")
+    ax_signal.legend()
+
+    # Display the plot
+    st.pyplot(fig_signal)
+
+    buffer_signal = BytesIO()
+    fig_signal.savefig(buffer_signal, format="png")
+    buffer_signal.seek(0)
 
     st.download_button(
         label="Download Preprocessed Signal Plot",
-        data=fig_signal.to_html(),
-        file_name="preprocessed_signal_plot.html",
-        mime="text/html"
-    )   
-
+        data=buffer_signal,
+        file_name="preprocessed_signal_plot.png",
+        mime="image/png"
+    )
