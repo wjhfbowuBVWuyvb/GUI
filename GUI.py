@@ -17,7 +17,7 @@ if uploaded_file is not None:
 
     # Preprocessing with NeuroKit2
     st.subheader("Preprocessing the Signal")
-    signal = nk.signal_clean(signal, sampling_rate=fs, method="butterworth")
+    signal = nk.filter_signal(signal, sampling_rate=fs, lowcut=0.5, highcut=50, method="butterworth")
     st.line_chart(signal)
 
     # Shannon Energy Calculation
