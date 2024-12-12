@@ -1,6 +1,6 @@
 streamlit
-neurokit2
-matplotlib
-scipy
 numpy
-fastdtw
+plotly
+neurokit2
+scipy
+matplotlib
