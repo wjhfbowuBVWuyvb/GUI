@@ -51,37 +51,42 @@ if uploaded_file is not None:
     ax.legend()
     st.pyplot(fig)
 
-    # Load Pretrained TensorFlow Model (for Abnormality Detection)
+    # Abnormality Detection
     st.subheader("Abnormality Detection")
+
+    # Upload Model
     model_file = st.file_uploader("Upload a Pretrained Model (.h5)", type="h5")
     if model_file is not None:
-        model = load_model(model_file)
+        try:
+            model = load_model(model_file)
 
-        # Segment and Predict
-        segmented_signal = np.array_split(signal, len(signal) // fs)  # 1-second segments
-        predictions = [model.predict(np.expand_dims(seg, axis=0)) for seg in segmented_signal]
-        predictions = np.array(predictions).flatten()
+            # Segment and Predict
+            segmented_signal = np.array_split(signal, len(signal) // fs)  # 1-second segments
+            predictions = [model.predict(np.expand_dims(seg, axis=0)) for seg in segmented_signal]
+            predictions = np.array(predictions).flatten()
 
-        # Display Results
-        abnormality_threshold = st.slider("Abnormality Detection Threshold", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
-        abnormal_segments = np.where(predictions > abnormality_threshold)[0]
+            # Display Results
+            abnormality_threshold = st.slider("Abnormality Detection Threshold", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
+            abnormal_segments = np.where(predictions > abnormality_threshold)[0]
 
-        st.write(f"Detected {len(abnormal_segments)} abnormal segments.")
+            st.write(f"Detected {len(abnormal_segments)} abnormal segments.")
 
-        # Highlight Abnormal Segments
-        abnormal_signal = np.zeros_like(signal)
-        for seg in abnormal_segments:
-            start = seg * fs
-            end = start + fs
-            abnormal_signal[start:end] = signal[start:end]
+            # Highlight Abnormal Segments
+            abnormal_signal = np.zeros_like(signal)
+            for seg in abnormal_segments:
+                start = seg * fs
+                end = start + fs
+                abnormal_signal[start:end] = signal[start:end]
 
-        fig, ax = plt.subplots()
-        ax.plot(signal, label="Original Signal")
-        ax.plot(abnormal_signal, label="Abnormal Segments", color="red")
-        ax.set_title("Heart Signal with Abnormalities Highlighted")
-        ax.set_xlabel("Samples")
-        ax.set_ylabel("Amplitude")
-        ax.legend()
-        st.pyplot(fig)
+            fig, ax = plt.subplots()
+            ax.plot(signal, label="Original Signal")
+            ax.plot(abnormal_signal, label="Abnormal Segments", color="red")
+            ax.set_title("Heart Signal with Abnormalities Highlighted")
+            ax.set_xlabel("Samples")
+            ax.set_ylabel("Amplitude")
+            ax.legend()
+            st.pyplot(fig)
+        except Exception as e:
+            st.error(f"Error loading the model: {e}")
     else:
-        st.error("Please upload a valid .h5 model file.")
+        st.warning("Please upload a valid .h5 model file to proceed with abnormality detection.")
