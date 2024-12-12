@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import neurokit2 as nk
 from scipy.signal import butter, filtfilt, find_peaks
 from scipy.io import wavfile
@@ -14,6 +14,12 @@ if uploaded_file is not None:
     fs, signal = wavfile.read(uploaded_file)
     st.write(f"Sampling Rate: {fs} Hz")
 
+    # Cap Signal Amplitude to a Normal Range (e.g., -1 to 1)
+    def limit_amplitude(data, min_val=-1, max_val=1):
+        return np.clip(data, min_val, max_val)
+
+    signal = limit_amplitude(signal / np.max(np.abs(signal)))  # Normalize and limit
+
     # Preprocessing with Butterworth Bandpass Filter (using scipy)
     def butter_bandpass_filter(data, lowcut, highcut, fs, order=2):
         nyquist = 0.5 * fs
@@ -25,8 +31,10 @@ if uploaded_file is not None:
     signal = butter_bandpass_filter(signal, lowcut=0.5, highcut=50, fs=fs)
 
     st.subheader("Preprocessing the Signal")
-    st.line_chart(signal)
-
+    fig_signal = go.Figure()
+    fig_signal.add_trace(go.Scatter(y=signal, mode='lines', name='Preprocessed Signal'))
+    st.plotly_chart(fig_signal)
+    
     # Shannon Energy Calculation
     normalized_signal = signal / np.max(np.abs(signal))
     shannon_energy = -normalized_signal**2 * np.log(normalized_signal**2 + 1e-10)
@@ -40,44 +48,44 @@ if uploaded_file is not None:
     peaks, _ = find_peaks(shannon_energy, height=height, distance=min_distance_samples)
     st.write(f"Detected {len(peaks)} peaks.")
 
-    # Plot Signal and Peaks
-    fig, ax = plt.subplots()
-    ax.plot(shannon_energy, label="Shannon Energy")
-    ax.scatter(peaks, shannon_energy[peaks], color="red", label="Peaks")
-    ax.set_title("Shannon Energy and Peaks")
-    ax.set_xlabel("Samples")
-    ax.set_ylabel("Energy")
-    ax.legend()
-    st.pyplot(fig)
+    # S2 and S1 Peak Identification
+    s2_peaks = peaks[::2]
+    s1_peaks = peaks[1::2]
+    systole = [(s1, s2) for s1, s2 in zip(s1_peaks, s2_peaks[1:])]
+    diastole = [(s2, s1) for s2, s1 in zip(s2_peaks, s1_peaks)]
 
-    # Abnormality Detection Based on Rules
+    # Interactive Shannon Energy Plot
+    fig_energy = go.Figure()
+    fig_energy.add_trace(go.Scatter(y=shannon_energy, mode='lines', name='Shannon Energy', line=dict(color='black')))
+    fig_energy.add_trace(go.Scatter(x=s2_peaks, y=shannon_energy[s2_peaks], mode='markers', name='S2 Peaks', marker=dict(color='red')))
+    fig_energy.add_trace(go.Scatter(x=s1_peaks, y=shannon_energy[s1_peaks], mode='markers', name='S1 Peaks', marker=dict(color='blue')))
+    for s1, s2 in systole:
+        fig_energy.add_vrect(x0=s1, x1=s2, fillcolor='orange', opacity=0.3, line_width=0, annotation_text='Systole')
+    for s2, s1 in diastole:
+        fig_energy.add_vrect(x0=s2, x1=s1, fillcolor='yellow', opacity=0.3, line_width=0, annotation_text='Diastole')
+    st.plotly_chart(fig_energy)
+
+    # Abnormality Detection Using NeuroKit2
     st.subheader("Abnormality Detection")
-    abnormal_segments = []
-    normal_segments = []
+    try:
+        ecg_analysis = nk.ecg_process(signal, sampling_rate=fs)
+        ecg_report = nk.ecg_report(ecg_analysis)
+        st.write("Abnormality Detection Report:")
+        st.write(ecg_report)
+    except Exception as e:
+        st.error(f"Error in abnormality detection: {e}")
 
-    # Rule-based detection (example: abnormal if peak intervals are irregular)
-    peak_intervals = np.diff(peaks) / fs  # Convert to seconds
-    avg_interval = np.mean(peak_intervals)
-    interval_threshold = st.slider("Irregular Interval Threshold (seconds)", min_value=0.05, max_value=1.0, value=0.2, step=0.05)
+    # Download Options for Plots
+    st.download_button(
+        label="Download Shannon Energy Plot",
+        data=fig_energy.to_html(),
+        file_name="shannon_energy_plot.html",
+        mime="text/html"
+    )
 
-    for i, interval in enumerate(peak_intervals):
-        if np.abs(interval - avg_interval) > interval_threshold:
-            abnormal_segments.append((peaks[i], peaks[i + 1]))
-        else:
-            normal_segments.append((peaks[i], peaks[i + 1]))
-
-    st.write(f"Detected {len(abnormal_segments)} abnormal intervals.")
-
-    # Highlight Abnormal Segments
-    abnormal_signal = np.zeros_like(signal)
-    for start, end in abnormal_segments:
-        abnormal_signal[start:end] = signal[start:end]
-
-    fig, ax = plt.subplots()
-    ax.plot(signal, label="Original Signal")
-    ax.plot(abnormal_signal, label="Abnormal Segments", color="red")
-    ax.set_title("Heart Signal with Abnormalities Highlighted")
-    ax.set_xlabel("Samples")
-    ax.set_ylabel("Amplitude")
-    ax.legend()
-    st.pyplot(fig)
+    st.download_button(
+        label="Download Preprocessed Signal Plot",
+        data=fig_signal.to_html(),
+        file_name="preprocessed_signal_plot.html",
+        mime="text/html"
+    )
