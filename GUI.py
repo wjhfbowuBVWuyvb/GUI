@@ -23,10 +23,11 @@ if uploaded_file is not None:
         b, a = butter(order, [low, high], btype='band')
         return filtfilt(b, a, data)
 
-    signal = butter_bandpass_filter(signal, lowcut=0.5, highcut=50, fs=fs)
+    signal = butter_bandpass_filter(signal, lowcut= 10, highcut= 800, fs=fs)
+    dsignal = signa[::12]
 
     st.subheader("Preprocessing the Signal")
-    st.line_chart(signal)
+    st.line_chart(dsignal)
 
     # Shannon Energy Calculation
     normalized_signal = signal / np.max(np.abs(signal))
