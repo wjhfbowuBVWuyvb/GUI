@@ -34,9 +34,9 @@ if uploaded_file is not None:
 
     # Peak Detection
     st.subheader("Peak Detection")
-    min_height = st.number_input("Minimum Peak Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
-    max_height = st.number_input("Maximum Peak Height", min_value=min_height, max_value=2.0, value=1.0, step=0.01)
-    min_distance = st.number_input("Minimum Peak Distance (seconds)", min_value=0.1, max_value=1.0, value=0.3, step=0.1)
+    min_height = st.number_input("Minimum Peak Height", min_value= None, max_value= None, value=0.1, step=0.01)
+    max_height = st.number_input("Maximum Peak Height", min_value= None, max_value= None, value=1.0, step=0.01)
+    min_distance = st.number_input("Minimum Peak Distance (seconds)", min_value= None, max_value= None, value=0.3, step=0.1)
     min_distance_samples = int(min_distance * fs)
 
     peaks, _ = find_peaks(shannon_energy, height=(min_height, max_height), distance=min_distance_samples)
