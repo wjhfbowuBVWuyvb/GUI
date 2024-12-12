@@ -24,7 +24,7 @@ if uploaded_file is not None:
         return filtfilt(b, a, data)
 
     signal = butter_bandpass_filter(signal, lowcut= 10, highcut= 800, fs=fs)
-    dsignal = signa[::12]
+    dsignal = signal[::12]
 
     st.subheader("Preprocessing the Signal")
     st.line_chart(dsignal)
