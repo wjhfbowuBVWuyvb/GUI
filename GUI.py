@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import neurokit2 as nk
-from scipy.signal import find_peaks
+from scipy.signal import butter, filtfilt, find_peaks
 from scipy.io import wavfile
 from tensorflow.keras.models import load_model
 
@@ -15,9 +15,17 @@ if uploaded_file is not None:
     fs, signal = wavfile.read(uploaded_file)
     st.write(f"Sampling Rate: {fs} Hz")
 
-    # Preprocessing with NeuroKit2
+    # Preprocessing with Butterworth Bandpass Filter (using scipy)
+    def butter_bandpass_filter(data, lowcut, highcut, fs, order=2):
+        nyquist = 0.5 * fs
+        low = lowcut / nyquist
+        high = highcut / nyquist
+        b, a = butter(order, [low, high], btype='band')
+        return filtfilt(b, a, data)
+
+    signal = butter_bandpass_filter(signal, lowcut=0.5, highcut=50, fs=fs)
+
     st.subheader("Preprocessing the Signal")
-    signal = nk.filter_signal(signal, sampling_rate=fs, lowcut=0.5, highcut=50, method="butterworth")
     st.line_chart(signal)
 
     # Shannon Energy Calculation
