@@ -1,0 +1,6 @@
+streamlit
+neurokit2
+tensorflow
+matplotlib
+scipy
+numpy
