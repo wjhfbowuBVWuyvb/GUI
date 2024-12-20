@@ -12,6 +12,9 @@ st.write("Upload a WAV file to analyze its systolic and diastolic rhythms.")
 # File uploader
 uploaded_file = st.file_uploader("Upload a WAV file", type=["wav"])
 
+# Slider for adjustable window size
+window_size = st.slider("Select Window Size for Peaks", min_value=50, max_value=1000, step=50, value=500)
+
 if uploaded_file is not None:
     # Read the uploaded file
     fs, signal = wavfile.read(uploaded_file)
@@ -69,9 +72,6 @@ if uploaded_file is not None:
 
     S1_peaks = np.array(S1_peaks)
     S2_peaks = np.array(S2_peaks)
-
-    # Define window size for peak extraction
-    window_size = 500
 
     # Extract S1 signal
     s1_signal = np.zeros_like(shannon_energy_envelope)
