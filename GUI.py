@@ -1,138 +1,140 @@
-# Import required libraries
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt, find_peaks
 from scipy.io import wavfile
 
-# Streamlit App Configuration
-st.title("Heart Sound Signal Analysis")
-st.write("Upload a WAV file to analyze its systolic and diastolic rhythms.")
+# Streamlit App Title
+st.title("Multi-Channel Signal Processing with Adjustable Parameters")
 
-# File uploader
+# File Uploader
 uploaded_file = st.file_uploader("Upload a WAV file", type=["wav"])
-
-# Number input for adjustable window size
-window_size = st.number_input(
-    "Enter Window Size for Peaks",
-    min_value=50,
-    max_value=1000,
-    step=50,
-    value=500,
-    format="%d"
-)
-
 if uploaded_file is not None:
-    # Read the uploaded file
     fs, signal = wavfile.read(uploaded_file)
 
-    # Parameters
-    M = 12
-    lowcut = 10
-    highcut = 800
-    order = 2
+    # Check the number of channels
+    if len(signal.shape) == 1:  # Single-channel signal
+        num_channels = 1
+        signals = [signal]
+    else:  # Multi-channel signal
+        num_channels = signal.shape[1]
+        signals = [signal[:, i] for i in range(num_channels)]
 
-    # Bandpass filter
-    b, a = butter(order, [lowcut / (fs/2), highcut / (fs/2)], btype='band')
-    filtered_signal = filtfilt(b, a, signal)
+    st.write(f"Number of channels detected: {num_channels}")
 
-    # Downsampling
-    down_sampled = filtered_signal[::M]
-    fs = fs / M
+    # Input Parameters
+    M = st.number_input("Downsampling Factor (M)", min_value=1, max_value=50, value=12, step=1)
+    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=10.0, step=1.0)
+    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=800.0, step=1.0)
+    order = st.number_input("Butterworth Filter Order", min_value=1, max_value=10, value=2, step=1)
+    window_size = st.number_input("Window Size (samples)", min_value=10, max_value=1000, value=50, step=10)
+    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=1.0, max_value=fs/2, value=0.02 * fs, step=1.0)
+    height = st.number_input("Peak Detection Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=1, max_value=1000, value=int(0.1 * fs), step=1)
 
-    # Normalize and compute Shannon energy
-    normalised_signal = down_sampled / np.max(np.abs(down_sampled))
-    shannon_energy = -normalised_signal**2 * np.log(normalised_signal**2 + 1e-10)
+    # If multi-channel, compute combined signal (average across channels)
+    if num_channels > 1:
+        combined_signal = np.mean(signal, axis=1)
+        # Plot combined signal
+        st.subheader("Combined Signal of All Channels")
+        fig_combined, ax_combined = plt.subplots(figsize=(12, 4))
+        ax_combined.plot(combined_signal, label="Combined Signal (Mean of All Channels)", color="purple")
+        ax_combined.set_title("Combined Signal of All Channels")
+        ax_combined.set_xlabel("Samples")
+        ax_combined.set_ylabel("Amplitude")
+        ax_combined.legend(loc='upper right')
+        st.pyplot(fig_combined)
 
-    # Lowpass filter for Shannon energy envelope
-    lowpass_cutoff = 20
-    b_lowpass, a_lowpass = butter(order, lowpass_cutoff / (fs/2), btype='low')
-    shannon_energy_envelope = filtfilt(b_lowpass, a_lowpass, shannon_energy)
+    # Process each channel
+    for channel_index, signal in enumerate(signals):
+        st.subheader(f"Processing Channel {channel_index + 1}...")
 
-    # Peak detection
-    height = 0.1
-    min_distance = int(0.1 * fs)
-    all_peaks, _ = find_peaks(shannon_energy_envelope, height=height, distance=min_distance)
+        # Bandpass filter
+        b, a = butter(order, [lowcut / (fs/2), highcut / (fs/2)], btype='band')
+        filtered_signal = filtfilt(b, a, signal)
 
-    # Compute intervals between consecutive peaks
-    intervals = np.diff(all_peaks)
+        # Downsampling
+        down_sampled = filtered_signal[::M]
+        fs_downsampled = fs / M
 
-    # Classify S1 and S2 peaks dynamically
-    S1_peaks = []
-    S2_peaks = []
+        # Normalize and compute Shannon energy
+        normalised_signal = down_sampled / np.max(np.abs(down_sampled))
+        shannon_energy = -normalised_signal**2 * np.log(normalised_signal**2 + 1e-10)
 
-    for i in range(len(intervals)):
-        if i == 0:
-            if intervals[i] > intervals[i + 1]:
-                S2_peaks.append(all_peaks[i])
-                S1_peaks.append(all_peaks[i + 1])
-            else:
-                S1_peaks.append(all_peaks[i])
-                S2_peaks.append(all_peaks[i + 1])
+        # Lowpass filter for Shannon energy envelope
+        lowpass_cutoff = 20
+        b_lowpass, a_lowpass = butter(order, lowpass_cutoff / (fs_downsampled/2), btype='low')
+        shannon_energy_envelope = filtfilt(b_lowpass, a_lowpass, shannon_energy)
+
+        # Peak detection
+        all_peaks, _ = find_peaks(shannon_energy_envelope, height=height, distance=min_distance)
+
+        # Check if there are enough peaks
+        if len(all_peaks) < 2:
+            st.write(f"Channel {channel_index + 1}: Not enough peaks detected to calculate intervals. Skipping analysis.")
+            fig_peaks, ax_peaks = plt.subplots(figsize=(12, 2.3))
+            ax_peaks.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
+            ax_peaks.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
+            ax_peaks.set_title(f"Channel {channel_index + 1}: Detected Peaks (Insufficient for Analysis)")
+            ax_peaks.set_xlabel("Samples")
+            ax_peaks.set_ylabel("Energy")
+            ax_peaks.legend(loc='upper right')
+            st.pyplot(fig_peaks)
+            continue
+
+        # Compute intervals between consecutive peaks
+        intervals = np.diff(all_peaks)
+
+        # Check if intervals are nearly uniform
+        if np.max(intervals) - np.min(intervals) < threshold:
+            st.write(f"Channel {channel_index + 1}: Uniform intervals detected. Only peaks will be plotted.")
+            fig_uniform, ax_uniform = plt.subplots(figsize=(12, 2.3))
+            ax_uniform.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
+            ax_uniform.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
+            ax_uniform.set_title(f"Channel {channel_index + 1}: Detected Peaks Only")
+            ax_uniform.set_xlabel("Samples")
+            ax_uniform.set_ylabel("Energy")
+            ax_uniform.legend(loc='upper right')
+            st.pyplot(fig_uniform)
         else:
-            if intervals[i] > intervals[i - 1]:
-                S2_peaks.append(all_peaks[i])
-                S1_peaks.append(all_peaks[i + 1])
-            else:
-                S1_peaks.append(all_peaks[i])
-                S2_peaks.append(all_peaks[i + 1])
+            # Classify S1 and S2 peaks dynamically
+            S1_peaks = []
+            S2_peaks = []
 
-    S1_peaks = np.array(S1_peaks)
-    S2_peaks = np.array(S2_peaks)
+            for i in range(len(intervals)):
+                if i == 0:
+                    if intervals[i] > intervals[i + 1]:
+                        S2_peaks.append(all_peaks[i])
+                        S1_peaks.append(all_peaks[i + 1])
+                    else:
+                        S1_peaks.append(all_peaks[i])
+                        S2_peaks.append(all_peaks[i + 1])
+                else:
+                    if intervals[i] > intervals[i - 1]:
+                        S2_peaks.append(all_peaks[i])
+                        S1_peaks.append(all_peaks[i + 1])
+                    else:
+                        S1_peaks.append(all_peaks[i])
+                        S2_peaks.append(all_peaks[i + 1])
 
-    # Extract S1 signal
-    s1_signal = np.zeros_like(shannon_energy_envelope)
-    for peak in S1_peaks:
-        start = max(0, peak - window_size)
-        end = min(len(shannon_energy_envelope), peak + window_size)
-        s1_signal[start:end] = shannon_energy_envelope[start:end]
+            S1_peaks = np.array(S1_peaks)
+            S2_peaks = np.array(S2_peaks)
 
-    # Extract S2 signal
-    s2_signal = np.zeros_like(shannon_energy_envelope)
-    for peak in S2_peaks:
-        start = max(0, peak - window_size)
-        end = min(len(shannon_energy_envelope), peak + window_size)
-        s2_signal[start:end] = shannon_energy_envelope[start:end]
+            # --- Plot 1: Systolic and Diastolic Rhythm ---
+            fig_rhythm, ax_rhythm = plt.subplots(figsize=(12, 2.3))
+            ax_rhythm.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
+            ax_rhythm.scatter(S1_peaks, shannon_energy_envelope[S1_peaks], color='blue', label="S1 Peaks")
+            ax_rhythm.scatter(S2_peaks, shannon_energy_envelope[S2_peaks], color='red', label="S2 Peaks")
 
-    # --- Plot 1: Systolic and Diastolic Rhythm ---
-    fig1, ax1 = plt.subplots(figsize=(12, 2.3))
-    ax1.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
-    ax1.scatter(S1_peaks, shannon_energy_envelope[S1_peaks], color='blue', label="S1 Peaks")
-    ax1.scatter(S2_peaks, shannon_energy_envelope[S2_peaks], color='red', label="S2 Peaks")
+            for i in range(len(S2_peaks)):
+                if i < len(S1_peaks):
+                    if S2_peaks[i] < S1_peaks[i]:
+                        ax_rhythm.axvspan(S2_peaks[i], S1_peaks[i], color='yellow', alpha=0.3, label="Diastole")
+                    else:
+                        ax_rhythm.axvspan(S1_peaks[i], S2_peaks[i], color='orange', alpha=0.3, label="Systole")
 
-    diastole_labeled = False
-    systole_labeled = False
-    for i in range(len(S2_peaks)):
-        if i < len(S1_peaks):
-            if S2_peaks[i] < S1_peaks[i]:
-                ax1.axvspan(S2_peaks[i], S1_peaks[i], color='yellow', alpha=0.3,
-                            label="Diastole" if not diastole_labeled else None)
-                diastole_labeled = True
-            else:
-                ax1.axvspan(S1_peaks[i], S2_peaks[i], color='orange', alpha=0.3,
-                            label="Systole" if not systole_labeled else None)
-                systole_labeled = True
-    ax1.set_title("Systolic and Diastolic Rhythm Indicated")
-    ax1.set_xlabel("Samples")
-    ax1.set_ylabel("Energy")
-    ax1.legend(loc='upper right')
-    st.pyplot(fig1)
-
-    # --- Plot 2: S1 Signal ---
-    fig2, ax2 = plt.subplots(figsize=(12, 2.3))
-    ax2.plot(s1_signal, label="S1 Peaks Signal", color="blue")
-    ax2.set_title("Signal with Only S1 Peaks")
-    ax2.set_xlabel("Samples")
-    ax2.set_ylabel("Energy")
-    ax2.legend(loc='upper right')
-    st.pyplot(fig2)
-
-    # --- Plot 3: S2 Signal ---
-    fig3, ax3 = plt.subplots(figsize=(12, 2.3))
-    ax3.plot(s2_signal, label="S2 Peaks Signal", color="red")
-    ax3.set_title("Signal with Only S2 Peaks")
-    ax3.set_xlabel("Samples")
-    ax3.set_ylabel("Energy")
-    ax3.legend(loc='upper right')
-    st.pyplot(fig3)
-
+            ax_rhythm.set_title(f"Channel {channel_index + 1}: Systolic and Diastolic Rhythm")
+            ax_rhythm.set_xlabel("Samples")
+            ax_rhythm.set_ylabel("Energy")
+            ax_rhythm.legend(loc='upper right')
+            st.pyplot(fig_rhythm)
