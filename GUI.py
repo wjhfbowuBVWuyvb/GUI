@@ -5,8 +5,8 @@ from scipy.signal import butter, filtfilt, find_peaks
 from scipy.io import wavfile
 import io
 
-# Title
-st.title("GUI")
+# Streamlit App Title
+st.title("Multi-Channel Signal Processing with Plot and Channel Management")
 
 # File Uploader
 uploaded_file = st.file_uploader("Upload a WAV file", type=["wav"])
@@ -43,13 +43,13 @@ if uploaded_file is not None:
         st.download_button("Download Combined Signal Plot", combined_image_buffer, file_name="combined_signal.png")
 
     # Input Parameters (with default values from the earlier code)
-    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
-    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
-    order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
-    window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=500, step=10)
-    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=0.02 * fs, step=1.0)
-    height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
-    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
+    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=10.0, step=1.0)
+    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=800.0, step=1.0)
+    order = st.number_input("Butterworth Filter Order", min_value=1, max_value=10, value=2, step=1)
+    window_size = st.number_input("Window Size (samples)", min_value=10, max_value=1000, value=500, step=10)
+    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=1.0, max_value=fs/2, value=0.02 * fs, step=1.0)
+    height = st.number_input("Peak Detection Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=1, max_value=1000, value=400, step=1)
 
     # Select channels to keep
     channels_to_keep = st.multiselect(
@@ -199,6 +199,16 @@ if uploaded_file is not None:
             ax_rhythm.set_ylabel("Energy")
             ax_rhythm.legend(loc='upper right')
             st.pyplot(fig_rhythm)
+
+            # Allow download of the systolic and diastolic rhythm plot
+            rhythm_image_buffer = io.BytesIO()
+            fig_rhythm.savefig(rhythm_image_buffer, format='png', dpi=300)
+            rhythm_image_buffer.seek(0)
+            st.download_button(
+                f"Download Systolic and Diastolic Plot for Channel {channel_index + 1}",
+                rhythm_image_buffer,
+                file_name=f"channel_{channel_index + 1}_systolic_diastolic.png"
+            )
 
             # --- Plot 2: S1 Peaks Only ---
             fig_s1, ax_s1 = plt.subplots(figsize=(12, 2.3))
