@@ -1,12 +1,12 @@
-
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt, find_peaks
 from scipy.io import wavfile
+import io
 
 # Streamlit App Title
-st.title("Multi-Channel Signal Processing")
+st.title("Multi-Channel Signal Processing with Plot and Channel Management")
 
 # File Uploader
 uploaded_file = st.file_uploader("Upload a WAV file", type=["wav"])
@@ -36,16 +36,35 @@ if uploaded_file is not None:
         ax_combined.legend(loc='upper right')
         st.pyplot(fig_combined)
 
-    # Input Parameters
-    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
-    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
-    order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
-    window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=500, step=10)
-    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=0.02 * fs, step=1.0)
-    height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
-    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
+        # Allow download of the combined signal plot
+        combined_image_buffer = io.BytesIO()
+        fig_combined.savefig(combined_image_buffer, format='png', dpi=300)
+        combined_image_buffer.seek(0)
+        st.download_button("Download Combined Signal Plot", combined_image_buffer, file_name="combined_signal.png")
+
+    # Input Parameters (with default values from the earlier code)
+    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=10.0, step=1.0)
+    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=800.0, step=1.0)
+    order = st.number_input("Butterworth Filter Order", min_value=1, max_value=10, value=2, step=1)
+    window_size = st.number_input("Window Size (samples)", min_value=10, max_value=1000, value=500, step=10)
+    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=1.0, max_value=fs/2, value=0.02 * fs, step=1.0)
+    height = st.number_input("Peak Detection Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=1, max_value=1000, value=400, step=1)
+
+    # Select channels to keep
+    channels_to_keep = st.multiselect(
+        "Select Channels to Keep (based on quality)", options=list(range(1, num_channels + 1)), default=list(range(1, num_channels + 1))
+    )
+
+    # Filter out unwanted channels
+    if len(channels_to_keep) > 0:
+        signals = [signals[i - 1] for i in channels_to_keep]
+        st.write(f"Channels kept: {channels_to_keep}")
+    else:
+        st.warning("No channels selected. Please select at least one channel to continue.")
 
     # Process each channel
+    processed_signals = []
     for channel_index, signal in enumerate(signals):
         st.subheader(f"Processing Channel {channel_index + 1}...")
 
@@ -81,6 +100,16 @@ if uploaded_file is not None:
             ax_peaks.set_ylabel("Energy")
             ax_peaks.legend(loc='upper right')
             st.pyplot(fig_peaks)
+
+            # Allow download of the detected peaks plot
+            peaks_image_buffer = io.BytesIO()
+            fig_peaks.savefig(peaks_image_buffer, format='png', dpi=300)
+            peaks_image_buffer.seek(0)
+            st.download_button(
+                f"Download Peaks Plot for Channel {channel_index + 1}",
+                peaks_image_buffer,
+                file_name=f"channel_{channel_index + 1}_peaks.png"
+            )
             continue
 
         # Compute intervals between consecutive peaks
@@ -97,6 +126,16 @@ if uploaded_file is not None:
             ax_uniform.set_ylabel("Energy")
             ax_uniform.legend(loc='upper right')
             st.pyplot(fig_uniform)
+
+            # Allow download of uniform interval plot
+            uniform_image_buffer = io.BytesIO()
+            fig_uniform.savefig(uniform_image_buffer, format='png', dpi=300)
+            uniform_image_buffer.seek(0)
+            st.download_button(
+                f"Download Uniform Peaks Plot for Channel {channel_index + 1}",
+                uniform_image_buffer,
+                file_name=f"channel_{channel_index + 1}_uniform_peaks.png"
+            )
         else:
             # Classify S1 and S2 peaks dynamically
             S1_peaks = []
@@ -120,6 +159,20 @@ if uploaded_file is not None:
 
             S1_peaks = np.array(S1_peaks)
             S2_peaks = np.array(S2_peaks)
+
+            # Extract S1 signal
+            s1_signal = np.zeros_like(shannon_energy_envelope)
+            for peak in S1_peaks:
+                start = max(0, peak - window_size)
+                end = min(len(shannon_energy_envelope), peak + window_size)
+                s1_signal[start:end] = shannon_energy_envelope[start:end]
+
+            # Extract S2 signal
+            s2_signal = np.zeros_like(shannon_energy_envelope)
+            for peak in S2_peaks:
+                start = max(0, peak - window_size)
+                end = min(len(shannon_energy_envelope), peak + window_size)
+                s2_signal[start:end] = shannon_energy_envelope[start:end]
 
             # --- Plot 1: Systolic and Diastolic Rhythm ---
             fig_rhythm, ax_rhythm = plt.subplots(figsize=(12, 2.3))
@@ -149,11 +202,6 @@ if uploaded_file is not None:
 
             # --- Plot 2: S1 Peaks Only ---
             fig_s1, ax_s1 = plt.subplots(figsize=(12, 2.3))
-            s1_signal = np.zeros_like(shannon_energy_envelope)
-            for peak in S1_peaks:
-                start = max(0, peak - window_size)
-                end = min(len(shannon_energy_envelope), peak + window_size)
-                s1_signal[start:end] = shannon_energy_envelope[start:end]
             ax_s1.plot(s1_signal, label="S1 Peaks Signal", color="blue")
             ax_s1.set_title(f"Channel {channel_index + 1}: S1 Peaks")
             ax_s1.set_xlabel("Samples")
@@ -163,14 +211,24 @@ if uploaded_file is not None:
 
             # --- Plot 3: S2 Peaks Only ---
             fig_s2, ax_s2 = plt.subplots(figsize=(12, 2.3))
-            s2_signal = np.zeros_like(shannon_energy_envelope)
-            for peak in S2_peaks:
-                start = max(0, peak - window_size)
-                end = min(len(shannon_energy_envelope), peak + window_size)
-                s2_signal[start:end] = shannon_energy_envelope[start:end]
             ax_s2.plot(s2_signal, label="S2 Peaks Signal", color="red")
             ax_s2.set_title(f"Channel {channel_index + 1}: S2 Peaks")
             ax_s2.set_xlabel("Samples")
             ax_s2.set_ylabel("Energy")
             ax_s2.legend(loc='upper right')
             st.pyplot(fig_s2)
+
+        # Append processed signals
+        processed_signals.append(filtered_signal)
+
+    # Combine remaining signals into a new multi-channel WAV file
+    if len(processed_signals) > 1:
+        new_signal = np.stack(processed_signals, axis=1)
+    else:
+        new_signal = processed_signals[0]
+
+    # Save the new WAV file
+    wav_buffer = io.BytesIO()
+    wavfile.write(wav_buffer, fs, new_signal.astype(np.int16))
+    wav_buffer.seek(0)
+    st.download_button("Download Processed Signal as WAV", wav_buffer, file_name="processed_signal.wav")
