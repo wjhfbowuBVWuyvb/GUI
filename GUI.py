@@ -30,7 +30,7 @@ if uploaded_file is not None:
     window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=50, step=10)
     threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=(0.02 * fs), step=1.0)
     height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
-    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=int(0.1 * fs), step=1)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=40, step=1)
 
     # If multi-channel, compute combined signal (average across channels)
     if num_channels > 1:
