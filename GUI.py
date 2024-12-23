@@ -126,13 +126,19 @@ if uploaded_file is not None:
             ax_rhythm.scatter(S1_peaks, shannon_energy_envelope[S1_peaks], color='blue', label="S1 Peaks")
             ax_rhythm.scatter(S2_peaks, shannon_energy_envelope[S2_peaks], color='red', label="S2 Peaks")
 
+            diastole_labeled = False
+            systole_labeled = False
+
             for i in range(len(S2_peaks)):
                 if i < len(S1_peaks):
-                    if S2_peaks[i] < S1_peaks[i]:
-                        ax_rhythm.axvspan(S2_peaks[i], S1_peaks[i], color='yellow', alpha=0.3, label="Diastole")
-                    else:
-                        ax_rhythm.axvspan(S1_peaks[i], S2_peaks[i], color='orange', alpha=0.3, label="Systole")
-
+                    if S2_peaks[i] < S1_peaks[i]:  # Diastole
+                        ax_rhythm.axvspan(S2_peaks[i], S1_peaks[i], color='yellow', alpha=0.3, 
+                                          label="Diastole" if not diastole_labeled else None)
+                        diastole_labeled = True
+                    else:  # Systole
+                        ax_rhythm.axvspan(S1_peaks[i], S2_peaks[i], color='orange', alpha=0.3, 
+                                          label="Systole" if not systole_labeled else None)
+            systole_labeled = True
             ax_rhythm.set_title(f"Channel {channel_index + 1}: Systolic and Diastolic Rhythm")
             ax_rhythm.set_xlabel("Samples")
             ax_rhythm.set_ylabel("Energy")
