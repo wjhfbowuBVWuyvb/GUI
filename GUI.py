@@ -5,12 +5,13 @@ from scipy.signal import butter, filtfilt, find_peaks
 from scipy.io import wavfile
 
 # Streamlit App Title
-st.title("Multi-Channel Signal Processing with Adjustable Parameters")
+st.title("Multi-Channel Signal Processing")
 
 # File Uploader
 uploaded_file = st.file_uploader("Upload a WAV file", type=["wav"])
 if uploaded_file is not None:
     fs, signal = wavfile.read(uploaded_file)
+    st.write(f"Sampling frequency: {fs} Hz")
 
     # Check the number of channels
     if len(signal.shape) == 1:  # Single-channel signal
@@ -22,20 +23,9 @@ if uploaded_file is not None:
 
     st.write(f"Number of channels detected: {num_channels}")
 
-    # Input Parameters
-    M = st.number_input("Downsampling Factor (M)", min_value=None, max_value=None, value=12, step=1)
-    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
-    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
-    order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
-    window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=50, step=10)
-    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=(0.02 * fs), step=1.0)
-    height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
-    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=40, step=1)
-
     # If multi-channel, compute combined signal (average across channels)
     if num_channels > 1:
         combined_signal = np.mean(signal, axis=1)
-        # Plot combined signal
         st.subheader("Combined Signal of All Channels")
         fig_combined, ax_combined = plt.subplots(figsize=(12, 4))
         ax_combined.plot(combined_signal, label="Combined Signal (Mean of All Channels)", color="purple")
@@ -45,11 +35,21 @@ if uploaded_file is not None:
         ax_combined.legend(loc='upper right')
         st.pyplot(fig_combined)
 
+    # Input Parameters
+    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
+    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
+    order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
+    window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=500, step=10)
+    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=0.02 * fs, step=1.0)
+    height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
+
     # Process each channel
     for channel_index, signal in enumerate(signals):
         st.subheader(f"Processing Channel {channel_index + 1}...")
 
         # Bandpass filter
+        M = int(fs / 4000)
         b, a = butter(order, [lowcut / (fs/2), highcut / (fs/2)], btype='band')
         filtered_signal = filtfilt(b, a, signal)
 
@@ -138,3 +138,31 @@ if uploaded_file is not None:
             ax_rhythm.set_ylabel("Energy")
             ax_rhythm.legend(loc='upper right')
             st.pyplot(fig_rhythm)
+
+            # --- Plot 2: S1 Peaks Only ---
+            fig_s1, ax_s1 = plt.subplots(figsize=(12, 2.3))
+            s1_signal = np.zeros_like(shannon_energy_envelope)
+            for peak in S1_peaks:
+                start = max(0, peak - window_size)
+                end = min(len(shannon_energy_envelope), peak + window_size)
+                s1_signal[start:end] = shannon_energy_envelope[start:end]
+            ax_s1.plot(s1_signal, label="S1 Peaks Signal", color="blue")
+            ax_s1.set_title(f"Channel {channel_index + 1}: S1 Peaks")
+            ax_s1.set_xlabel("Samples")
+            ax_s1.set_ylabel("Energy")
+            ax_s1.legend(loc='upper right')
+            st.pyplot(fig_s1)
+
+            # --- Plot 3: S2 Peaks Only ---
+            fig_s2, ax_s2 = plt.subplots(figsize=(12, 2.3))
+            s2_signal = np.zeros_like(shannon_energy_envelope)
+            for peak in S2_peaks:
+                start = max(0, peak - window_size)
+                end = min(len(shannon_energy_envelope), peak + window_size)
+                s2_signal[start:end] = shannon_energy_envelope[start:end]
+            ax_s2.plot(s2_signal, label="S2 Peaks Signal", color="red")
+            ax_s2.set_title(f"Channel {channel_index + 1}: S2 Peaks")
+            ax_s2.set_xlabel("Samples")
+            ax_s2.set_ylabel("Energy")
+            ax_s2.legend(loc='upper right')
+            st.pyplot(fig_s2)
