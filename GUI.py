@@ -23,14 +23,14 @@ if uploaded_file is not None:
     st.write(f"Number of channels detected: {num_channels}")
 
     # Input Parameters
-    M = st.number_input("Downsampling Factor (M)", min_value=1, max_value=50, value=12, step=1)
-    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=10.0, step=1.0)
-    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=800.0, step=1.0)
-    order = st.number_input("Butterworth Filter Order", min_value=1, max_value=10, value=2, step=1)
-    window_size = st.number_input("Window Size (samples)", min_value=10, max_value=1000, value=50, step=10)
-    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=1.0, max_value=fs/2, value=0.02 * fs, step=1.0)
-    height = st.number_input("Peak Detection Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
-    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=1, max_value=1000, value=int(0.1 * fs), step=1)
+    M = st.number_input("Downsampling Factor (M)", min_value=None, max_value=None, value=12, step=1)
+    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
+    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
+    order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
+    window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=50, step=10)
+    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=(0.02 * fs), step=1.0)
+    height = st.number_input("Peak Detection Height", min_value=0.01, max_value=None, value=None, step=0.01)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=(0.1 * fs), step=1)
 
     # If multi-channel, compute combined signal (average across channels)
     if num_channels > 1:
