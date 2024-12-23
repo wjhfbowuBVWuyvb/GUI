@@ -1,3 +1,4 @@
+
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,13 +37,13 @@ if uploaded_file is not None:
         st.pyplot(fig_combined)
 
     # Input Parameters
-    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
-    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
-    order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
-    window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=500, step=10)
-    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=0.02 * fs, step=1.0)
-    height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
-    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
+    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=10.0, step=1.0)
+    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=1.0, max_value=fs/2, value=800.0, step=1.0)
+    order = st.number_input("Butterworth Filter Order", min_value=1, max_value=10, value=2, step=1)
+    window_size = st.number_input("Window Size (samples)", min_value=10, max_value=1000, value=500, step=10)
+    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=1.0, max_value=fs/2, value=0.02 * fs, step=1.0)
+    height = st.number_input("Peak Detection Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=1, max_value=1000, value=int(0.1 * fs), step=1)
 
     # Process each channel
     for channel_index, signal in enumerate(signals):
@@ -131,14 +132,15 @@ if uploaded_file is not None:
 
             for i in range(len(S2_peaks)):
                 if i < len(S1_peaks):
-                    if S2_peaks[i] < S1_peaks[i]:  # Diastole
+                    if S2_peaks[i] < S1_peaks[i]:
                         ax_rhythm.axvspan(S2_peaks[i], S1_peaks[i], color='yellow', alpha=0.3, 
                                           label="Diastole" if not diastole_labeled else None)
                         diastole_labeled = True
-                    else:  # Systole
+                    else:
                         ax_rhythm.axvspan(S1_peaks[i], S2_peaks[i], color='orange', alpha=0.3, 
                                           label="Systole" if not systole_labeled else None)
-            systole_labeled = True
+                        systole_labeled = True
+
             ax_rhythm.set_title(f"Channel {channel_index + 1}: Systolic and Diastolic Rhythm")
             ax_rhythm.set_xlabel("Samples")
             ax_rhythm.set_ylabel("Energy")
