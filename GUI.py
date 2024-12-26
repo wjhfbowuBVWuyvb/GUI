@@ -33,8 +33,8 @@ if uploaded_file is not None:
     else:
         ax_signal.plot(signal, label="Mono Channel")
         signal_length = len(signal) if num_channels == 1 else len(signals[0])
-        xlim_start_signal = st.number_input("X-axis Start for Signal Plot", min_value=None, max_value=None, value=0, step=1)
-        xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=None, max_value=None, value=signal_length, step=1)
+        xlim_start_signal = st.number_input("X-axis Start for Signal Plot", min_value=0 max_value=signal_length, value=0, step=1)
+        xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=signal_length, value=signal_length, step=1)
         ax_signal.set_xlim([xlim_start_signal, xlim_end_signal])
         ax_signal.set_title("Signal")
         ax_signal.set_xlabel("Samples")
@@ -42,7 +42,7 @@ if uploaded_file is not None:
         ax_signal.legend(loc='upper right')
         st.pyplot(fig_signal)
 
-    # Allow download of the raw signal plot
+    # Allow download of the signal plot
     signal_image_buffer = io.BytesIO()
     fig_signal.savefig(signal_image_buffer, format='png', dpi=300)
     signal_image_buffer.seek(0)
