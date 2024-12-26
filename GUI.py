@@ -24,32 +24,34 @@ if uploaded_file is not None:
 
     st.write(f"Number of channels detected: {num_channels}")
 
-    # If multi-channel, compute combined signal (average across channels)
+    # Plot raw signal (multi-channel or mono)
+    st.subheader("Raw Signal")
+    fig_raw, ax_raw = plt.subplots(figsize=(12, 4))
     if num_channels > 1:
-        combined_signal = np.mean(signal, axis=1)
-        st.subheader("Combined Signal of All Channels")
-        fig_combined, ax_combined = plt.subplots(figsize=(12, 4))
-        ax_combined.plot(combined_signal, label="Combined Signal (Mean of All Channels)", color="purple")
-        ax_combined.set_title("Combined Signal of All Channels")
-        ax_combined.set_xlabel("Samples")
-        ax_combined.set_ylabel("Amplitude")
-        ax_combined.legend(loc='upper right')
-        st.pyplot(fig_combined)
+        for i, channel_signal in enumerate(signals):
+            ax_raw.plot(channel_signal, label=f"Channel {i + 1}")
+    else:
+        ax_raw.plot(signal, label="Mono Channel")
+    ax_raw.set_title("Raw Signal")
+    ax_raw.set_xlabel("Samples")
+    ax_raw.set_ylabel("Amplitude")
+    ax_raw.legend(loc='upper right')
+    st.pyplot(fig_raw)
 
-        # Allow download of the combined signal plot
-        combined_image_buffer = io.BytesIO()
-        fig_combined.savefig(combined_image_buffer, format='png', dpi=300)
-        combined_image_buffer.seek(0)
-        st.download_button("Download Combined Signal Plot", combined_image_buffer, file_name="combined_signal.png")
+    # Allow download of the raw signal plot
+    raw_image_buffer = io.BytesIO()
+    fig_raw.savefig(raw_image_buffer, format='png', dpi=300)
+    raw_image_buffer.seek(0)
+    st.download_button("Download Raw Signal Plot", raw_image_buffer, file_name="raw_signal.png")
 
     # Input Parameters (with default values from the earlier code)
     lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
     highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
-    order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
-    window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=500, step=10)
-    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=0.02 * fs, step=1.0)
-    height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
-    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
+    order = st.number_input("Butterworth Filter Order", min_value=1, max_value=10, value=2, step=1)
+    window_size = st.number_input("Window Size (samples)", min_value=10, max_value=1000, value=500, step=10)
+    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=1.0, max_value=fs/2, value=0.02 * fs, step=1.0)
+    height = st.number_input("Peak Detection Height", min_value=0.01, max_value=1.0, value=0.1, step=0.01)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=1, max_value=1000, value=400, step=1)
 
     # Select channels to keep
     channels_to_keep = st.multiselect(
@@ -219,7 +221,7 @@ if uploaded_file is not None:
             ax_s1.legend(loc='upper right')
             st.pyplot(fig_s1)
 
-            # Allow download of S1 plo5
+            # Allow download of S1 plot
             S1_image = io.BytesIO()
             fig_s1.savefig(S1_image, format='png', dpi=300)
             S1_image.seek(0)
