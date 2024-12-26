@@ -39,7 +39,7 @@ if uploaded_file is not None:
     fig_signal, ax_signal = plt.subplots(figsize=(12, 4))
     if num_channels > 1:
         for i, channel_signal in enumerate(signals):
-            ax_raw.plot(channel_signal, label=f"Channel {i + 1}")
+            ax_signal.plot(channel_signal, label=f"Channel {i + 1}")
     else:
         # X-axis limits for all plots
         xlim_start = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(signal), value=0, step=1)
