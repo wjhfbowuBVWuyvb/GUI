@@ -45,32 +45,30 @@ if uploaded_file is not None:
     else:
         st.warning("No channels selected")
 
-    # Input for custom plot title
-    raw_signal_title = st.text_input("Enter title for Raw Signal Plot", value="Raw Signal")
-    
     # Plot raw signal (multi-channel or mono)
-    st.subheader("Raw Signal")
-    fig_raw, ax_raw = plt.subplots(figsize=(12, 4))
+    signal_title = st.text_input("Enter title", value="Signal")
+    st.subheader("Signal")
+    fig_signal, ax_signal = plt.subplots(figsize=(12, 4))
     if num_channels > 1:
         for i, channel_signal in enumerate(signals):
-            ax_raw.plot(channel_signal, label=f"Channel {i + 1}")
+            ax_signal.plot(channel_signal, label=f"Channel {i + 1}")
     else:
-        ax_raw.plot(signal, label="Mono Channel")
-    raw_signal_length = len(signal) if num_channels == 1 else len(signals[0])
-    xlim_start_raw = st.number_input("X-axis Start for Raw Signal Plot", min_value=0, max_value=raw_signal_length, value=0, step=1)
-    xlim_end_raw = st.number_input("X-axis End for Raw Signal Plot", min_value=0, max_value=raw_signal_length, value=raw_signal_length, step=1)
-    ax_raw.set_xlim([xlim_start_raw, xlim_end_raw])
-    ax_raw.set_title(raw_signal_title)  # Use the input value for the title
-    ax_raw.set_xlabel("Samples")
-    ax_raw.set_ylabel("Amplitude")
-    ax_raw.legend(loc='upper right')
-    st.pyplot(fig_raw)
+        ax_signal.plot(signal, label="Mono Channel")
+    signal_length = len(signal) if num_channels == 1 else len(signals[0])
+    xlim_start_signal = st.number_input("X-axis Start for Signal Plot", min_value=0, max_value=signal_length, value=0, step=1)
+    xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=signal_length, value=signal_length, step=1)
+    ax_signal.set_xlim([xlim_start_signal, xlim_end_signal])
+    ax_signal.set_title(signal_title)  
+    ax_signal.set_xlabel("Samples")
+    ax_signal.set_ylabel("Amplitude")
+    ax_signal.legend(loc='upper right')
+    st.pyplot(fig_signal)
     
     # Allow download of the raw signal plot
-    raw_image_buffer = io.BytesIO()
-    fig_raw.savefig(raw_image_buffer, format='png', dpi=300)
-    raw_image_buffer.seek(0)
-    st.download_button("Download Raw Signal Plot", raw_image_buffer, file_name="raw_signal.png")
+    signal_image_buffer = io.BytesIO()
+    fig_signal.savefig(signal_image_buffer, format='png', dpi=300)
+    signal_image_buffer.seek(0)
+    st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.png")
     
     # Process each channel
     processed_signals = []
@@ -100,6 +98,7 @@ if uploaded_file is not None:
 
         # Check if there are enough peaks
         if len(all_peaks) < 2:
+            peak_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks")
             st.write(f"Channel {channel_index + 1}: Not enough peaks")
             fig_peaks, ax_peaks = plt.subplots(figsize=(12, 2.3))
             ax_peaks.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
@@ -108,7 +107,7 @@ if uploaded_file is not None:
             xlim_start_peaks = st.number_input(f"X-axis Start for Peaks Plot (Channel {channel_index + 1})", min_value=0, max_value=signal_length, value=0, step=1)
             xlim_end_peaks = st.number_input(f"X-axis End for Peaks Plot (Channel {channel_index + 1})", min_value=0, max_value=signal_length, value=len(shannon_energy_envelope), step=1)
             ax_peaks.set_xlim([xlim_start_peaks, xlim_end_peaks])
-            ax_peaks.set_title(f"Channel {channel_index + 1}: Detected Peaks")
+            ax_peaks.set_title(peak_title)
             ax_peaks.set_xlabel("Samples")
             ax_peaks.set_ylabel("Energy")
             ax_peaks.legend(loc='upper right')
@@ -130,6 +129,7 @@ if uploaded_file is not None:
 
         # Check if intervals are nearly uniform
         if np.max(intervals) - np.min(intervals) < threshold:
+            uniform_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks Only")
             st.write(f"Channel {channel_index + 1}: Uniform intervals detected")
             fig_uniform, ax_uniform = plt.subplots(figsize=(12, 2.3))
             ax_uniform.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
@@ -138,7 +138,7 @@ if uploaded_file is not None:
             xlim_start_uniform = st.number_input(f"X-axis Start for Uniform Peaks Plot (Channel {channel_index + 1})", min_value=0, max_value=signal_length, value=0, step=1)
             xlim_end_uniform = st.number_input(f"X-axis End for Uniform Peaks Plot (Channel {channel_index + 1})", min_value=0, max_value=signal_length, value=len(shannon_energy_envelope), step=1)
             ax_uniform.set_xlim([xlim_start_uniform, xlim_end_uniform])
-            ax_uniform.set_title(f"Channel {channel_index + 1}: Detected Peaks Only")
+            ax_uniform.set_title(uniform_title)
             ax_uniform.set_xlabel("Samples")
             ax_uniform.set_ylabel("Energy")
             ax_uniform.legend(loc='upper right')
@@ -192,6 +192,7 @@ if uploaded_file is not None:
                 s2_signal[start:end] = shannon_energy_envelope[start:end]
 
             # --- Plot 1: Systolic and Diastolic Rhythm ---
+            rhythm_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Systolic and Diastolic Rhythm")
             fig_rhythm, ax_rhythm = plt.subplots(figsize=(12, 2.3))
             ax_rhythm.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_rhythm.scatter(S1_peaks, shannon_energy_envelope[S1_peaks], color='blue', label="S1 Peaks")
@@ -214,7 +215,7 @@ if uploaded_file is not None:
                                           label="Systole" if not systole_labeled else None)
                         systole_labeled = True
 
-            ax_rhythm.set_title(f"Channel {channel_index + 1}: Systolic and Diastolic Rhythm")
+            ax_rhythm.set_title(rhythm_title)
             ax_rhythm.set_xlabel("Samples")
             ax_rhythm.set_ylabel("Energy")
             ax_rhythm.legend(loc='upper right')
@@ -231,12 +232,13 @@ if uploaded_file is not None:
             )
 
             # --- Plot 2: S1 Peaks Only ---
+            s1_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S1 Peaks")
             fig_s1, ax_s1 = plt.subplots(figsize=(12, 2.3))
             ax_s1.plot(s1_signal, label="S1 Peaks Signal", color="blue")
             xlim_start_s1 = st.number_input(f"X-axis Start for S1 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=0, step=1)
             xlim_end_s1 = st.number_input(f"X-axis End for S1 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(down_sampled), step=1)
             ax_s1.set_xlim([xlim_start_s1, xlim_end_s1])
-            ax_s1.set_title(f"Channel {channel_index + 1}: S1 Peaks")
+            ax_s1.set_title(s1_title)
             ax_s1.set_xlabel("Samples")
             ax_s1.set_ylabel("Energy")
             ax_s1.legend(loc='upper right')
@@ -253,12 +255,13 @@ if uploaded_file is not None:
             )
 
             # --- Plot 3: S2 Peaks Only ---
+            s2_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S2 Peaks")
             fig_s2, ax_s2 = plt.subplots(figsize=(12, 2.3))
             ax_s2.plot(s2_signal, label="S2 Peaks Signal", color="red")
             xlim_start_s2 = st.number_input(f"X-axis Start for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=0, step=1)
             xlim_end_s2 = st.number_input(f"X-axis End for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(down_sampled), step=1)
             ax_s2.set_xlim([xlim_start_s2, xlim_end_s2])
-            ax_s2.set_title(f"Channel {channel_index + 1}: S2 Peaks")
+            ax_s2.set_title(s2_title)
             ax_s2.set_xlabel("Samples")
             ax_s2.set_ylabel("Energy")
             ax_s2.legend(loc='upper right')
