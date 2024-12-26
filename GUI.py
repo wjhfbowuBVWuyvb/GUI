@@ -53,10 +53,10 @@ if uploaded_file is not None:
         st.pyplot(fig_signal)
 
     # Allow download of the raw signal plot
-    raw_image_buffer = io.BytesIO()
-    fig_raw.savefig(raw_image_buffer, format='png', dpi=300)
-    raw_image_buffer.seek(0)
-    st.download_button("Download Raw Signal Plot", raw_image_buffer, file_name="raw_signal.png")
+    signal_image_buffer = io.BytesIO()
+    fig_signal.savefig(signal_image_buffer, format='png', dpi=300)
+    signal_image_buffer.seek(0)
+    st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.png")
     
 
     # Select channels to keep
