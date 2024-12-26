@@ -45,30 +45,32 @@ if uploaded_file is not None:
     else:
         st.warning("No channels selected")
 
-    # Plot signal (multi-channel or mono)
-    signal_title = st.text_input("Lesignal", value="Signal")
-    st.subheader("Signal")
-    fig_signal, ax_signal = plt.subplots(figsize=(12, 4))
+    # Input for custom plot title
+    raw_signal_title = st.text_input("Enter title for Raw Signal Plot", value="Raw Signal")
+    
+    # Plot raw signal (multi-channel or mono)
+    st.subheader("Raw Signal")
+    fig_raw, ax_raw = plt.subplots(figsize=(12, 4))
     if num_channels > 1:
         for i, channel_signal in enumerate(signals):
-            ax_signal.plot(channel_signal, label=f"Channel {i + 1}")
+            ax_raw.plot(channel_signal, label=f"Channel {i + 1}")
     else:
-        ax_signal.plot(signal, label="Mono Channel")
-    signal_length = len(signal) if num_channels == 1 else len(signals[0])
-    xlim_start_signal = st.number_input("X-axis Start for Signal Plot", min_value=0 ,max_value=signal_length, value=0, step=1)
-    xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=signal_length, value=signal_length, step=1)
-    ax_signal.set_xlim([xlim_start_signal, xlim_end_signal])
-    ax_signal.set_title("Signal")
-    ax_signal.set_xlabel("Samples")
-    ax_signal.set_ylabel("Amplitude")
-    ax_signal.legend(loc='upper right')
-    st.pyplot(fig_signal)
-
-    # Allow download of the signal plot
-    signal_image_buffer = io.BytesIO()
-    fig_signal.savefig(signal_image_buffer, format='png', dpi=300)
-    signal_image_buffer.seek(0)
-    st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.png")
+        ax_raw.plot(signal, label="Mono Channel")
+    raw_signal_length = len(signal) if num_channels == 1 else len(signals[0])
+    xlim_start_raw = st.number_input("X-axis Start for Raw Signal Plot", min_value=0, max_value=raw_signal_length, value=0, step=1)
+    xlim_end_raw = st.number_input("X-axis End for Raw Signal Plot", min_value=0, max_value=raw_signal_length, value=raw_signal_length, step=1)
+    ax_raw.set_xlim([xlim_start_raw, xlim_end_raw])
+    ax_raw.set_title(raw_signal_title)  # Use the input value for the title
+    ax_raw.set_xlabel("Samples")
+    ax_raw.set_ylabel("Amplitude")
+    ax_raw.legend(loc='upper right')
+    st.pyplot(fig_raw)
+    
+    # Allow download of the raw signal plot
+    raw_image_buffer = io.BytesIO()
+    fig_raw.savefig(raw_image_buffer, format='png', dpi=300)
+    raw_image_buffer.seek(0)
+    st.download_button("Download Raw Signal Plot", raw_image_buffer, file_name="raw_signal.png")
     
     # Process each channel
     processed_signals = []
