@@ -46,8 +46,8 @@ if uploaded_file is not None:
         st.warning("No channels selected")
 
     # Plot raw signal (multi-channel or mono)
-    signal_title = st.text_input("Enter title", value="Signal")
     st.subheader("Signal")
+    signal_title = st.text_input("Enter title", value="Signal")
     fig_signal, ax_signal = plt.subplots(figsize=(12, 4))
     if num_channels > 1:
         for i, channel_signal in enumerate(signals):
