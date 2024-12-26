@@ -42,10 +42,10 @@ if uploaded_file is not None:
             ax_signal.plot(channel_signal, label=f"Channel {i + 1}")
     else:
         # X-axis limits for all plots
-        xlim_start = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(signal), value=0, step=1)
-        xlim_end = st.number_input("X-axis End (samples)", min_value=0, max_value=len(signal), value=len(signal), step=1)
+        xlim_signa_start = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(signal), value=0, step=1)
+        xlim_signal_end = st.number_input("X-axis End (samples)", min_value=0, max_value=len(signal), value=len(signal), step=1)
         ax_signal.plot(signal, label="Mono Channel")    
-        ax_signal.set_xlim([xlim_start, xlim_end])
+        ax_signal.set_xlim([xlim_signal_start, xlim_signal_end])
         ax_signal.set_title("Signal")
         ax_signal.set_xlabel("Samples")
         ax_signal.set_ylabel("Amplitude")
@@ -102,11 +102,11 @@ if uploaded_file is not None:
             st.write(f"Channel {channel_index + 1}: Not enough peaks detected to calculate intervals. Skipping analysis.")
             fig_peaks, ax_peaks = plt.subplots(figsize=(12, 2.3))
             # X-axis limits for all plots
-            xlim_start = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
-            xlim_end = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
+            xlim_start_peak = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
+            xlim_end_peak = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
             ax_peaks.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_peaks.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
-            ax_peaks.set_xlim([xlim_start, xlim_end])
+            ax_peaks.set_xlim([xlim_start_peak, xlim_end_peak])
             ax_peaks.set_title(f"Channel {channel_index + 1}: Detected Peaks (Insufficient for Analysis)")
             ax_peaks.set_xlabel("Samples")
             ax_peaks.set_ylabel("Energy")
@@ -134,9 +134,9 @@ if uploaded_file is not None:
             ax_uniform.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_uniform.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
             # X-axis limits for all plots
-            xlim_start = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
-            xlim_end = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
-            ax_uniform.set_xlim([xlim_start, xlim_end])
+            xlim_start_uniform = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
+            xlim_end_uniform = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
+            ax_uniform.set_xlim([xlim_start_uniform, xlim_end_uniform])
             ax_uniform.set_title(f"Channel {channel_index + 1}: Detected Peaks Only")
             ax_uniform.set_xlabel("Samples")
             ax_uniform.set_ylabel("Energy")
@@ -196,9 +196,9 @@ if uploaded_file is not None:
             ax_rhythm.scatter(S1_peaks, shannon_energy_envelope[S1_peaks], color='blue', label="S1 Peaks")
             ax_rhythm.scatter(S2_peaks, shannon_energy_envelope[S2_peaks], color='red', label="S2 Peaks")
             # X-axis limits for all plots
-            xlim_start = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
-            xlim_end = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
-            ax_rhythm.set_xlim([xlim_start, xlim_end])
+            xlim_start_rhythm = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
+            xlim_end_rhythm = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
+            ax_rhythm.set_xlim([xlim_start_rhythm, xlim_end_rhythm])
 
             diastole_labeled = False
             systole_labeled = False
@@ -234,9 +234,9 @@ if uploaded_file is not None:
             fig_s1, ax_s1 = plt.subplots(figsize=(12, 2.3))
             ax_s1.plot(s1_signal, label="S1 Peaks Signal", color="blue")
             # X-axis limits for all plots
-            xlim_start = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
-            xlim_end = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
-            ax_s1.set_xlim([xlim_start, xlim_end])
+            xlim_start_s1 = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
+            xlim_end_s1 = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
+            ax_s1.set_xlim([xlim_start_s1, xlim_end_s1])
             ax_s1.set_title(f"Channel {channel_index + 1}: S1 Peaks")
             ax_s1.set_xlabel("Samples")
             ax_s1.set_ylabel("Energy")
@@ -257,9 +257,9 @@ if uploaded_file is not None:
             fig_s2, ax_s2 = plt.subplots(figsize=(12, 2.3))
             ax_s2.plot(s2_signal, label="S2 Peaks Signal", color="red")
             # X-axis limits for all plots
-            xlim_start = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
-            xlim_end = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
-            ax_s2.set_xlim([xlim_start, xlim_end])
+            xlim_start_s2 = st.number_input("X-axis Start (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
+            xlim_end_s2 = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
+            ax_s2.set_xlim([xlim_start_s2, xlim_end_s2])
             ax_s2.set_title(f"Channel {channel_index + 1}: S2 Peaks")
             ax_s2.set_xlabel("Samples")
             ax_s2.set_ylabel("Energy")
