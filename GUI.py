@@ -33,13 +33,6 @@ if uploaded_file is not None:
     height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
     min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
 
-    
-    # Allow download of the signal plot
-    signal_image_buffer = io.BytesIO()
-    fig_signal.savefig(signal_image_buffer, format='png', dpi=300)
-    signal_image_buffer.seek(0)
-    st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.png")
-
     # Select channels to keep
     channels_to_keep = st.multiselect(
         "Select Channels to Keep", options=list(range(1, num_channels + 1)), default=list(range(1, num_channels + 1))
@@ -69,6 +62,12 @@ if uploaded_file is not None:
     ax_signal.set_ylabel("Amplitude")
     ax_signal.legend(loc='upper right')
     st.pyplot(fig_signal)
+
+    # Allow download of the signal plot
+    signal_image_buffer = io.BytesIO()
+    fig_signal.savefig(signal_image_buffer, format='png', dpi=300)
+    signal_image_buffer.seek(0)
+    st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.png")
     
     # Process each channel
     processed_signals = []
