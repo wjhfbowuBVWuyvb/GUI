@@ -33,24 +33,7 @@ if uploaded_file is not None:
     height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
     min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
 
-    # Plot signal (multi-channel or mono)
-    st.subheader("Signal")
-    fig_signal, ax_signal = plt.subplots(figsize=(12, 4))
-    if num_channels > 1:
-        for i, channel_signal in enumerate(signals):
-            ax_signal.plot(channel_signal, label=f"Channel {i + 1}")
-    else:
-        ax_signal.plot(signal, label="Mono Channel")
-    signal_length = len(signal) if num_channels == 1 else len(signals[0])
-    xlim_start_signal = st.number_input("X-axis Start for Signal Plot", min_value=0 ,max_value=signal_length, value=0, step=1)
-    xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=signal_length, value=signal_length, step=1)
-    ax_signal.set_xlim([xlim_start_signal, xlim_end_signal])
-    ax_signal.set_title("Signal")
-    ax_signal.set_xlabel("Samples")
-    ax_signal.set_ylabel("Amplitude")
-    ax_signal.legend(loc='upper right')
-    st.pyplot(fig_signal)
-
+    
     # Allow download of the signal plot
     signal_image_buffer = io.BytesIO()
     fig_signal.savefig(signal_image_buffer, format='png', dpi=300)
@@ -69,6 +52,24 @@ if uploaded_file is not None:
     else:
         st.warning("No channels selected")
 
+    # Plot signal (multi-channel or mono)
+    st.subheader("Signal")
+    fig_signal, ax_signal = plt.subplots(figsize=(12, 4))
+    if num_channels > 1:
+        for i, channel_signal in enumerate(signals):
+            ax_signal.plot(channel_signal, label=f"Channel {i + 1}")
+    else:
+        ax_signal.plot(signal, label="Mono Channel")
+    signal_length = len(signal) if num_channels == 1 else len(signals[0])
+    xlim_start_signal = st.number_input("X-axis Start for Signal Plot", min_value=0 ,max_value=signal_length, value=0, step=1)
+    xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=signal_length, value=signal_length, step=1)
+    ax_signal.set_xlim([xlim_start_signal, xlim_end_signal])
+    ax_signal.set_title("Signal")
+    ax_signal.set_xlabel("Samples")
+    ax_signal.set_ylabel("Amplitude")
+    ax_signal.legend(loc='upper right')
+    st.pyplot(fig_signal)
+    
     # Process each channel
     processed_signals = []
     for channel_index, signal in enumerate(signals):
