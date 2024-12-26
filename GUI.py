@@ -26,7 +26,7 @@ if uploaded_file is not None:
 
     # Plot signal (multi-channel or mono)
     st.subheader("Signal")
-    fig_signal, ax_raw = plt.subplots(figsize=(12, 4))
+    fig_signal, ax_signal = plt.subplots(figsize=(12, 4))
     if num_channels > 1:
         for i, channel_signal in enumerate(signals):
             ax_signal.plot(channel_signal, label=f"Channel {i + 1}")
