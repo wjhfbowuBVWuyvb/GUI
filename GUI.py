@@ -135,7 +135,7 @@ if uploaded_file is not None:
             ax_uniform.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
             # X-axis limits for all plots
             xlim_start_uniform = st.number_input("X-axis Start (samples)", channel_index + 1, min_value=0, max_value=len(shannon_energy_envelope), value=0, step=1)
-            xlim_end_uniform = st.number_input("X-axis End (samples)", min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
+            xlim_end_uniform = st.number_input("X-axis End (samples)",channel_index + 1, min_value=0, max_value=len(shannon_energy_envelope), value=len(shannon_energy_envelope), step=1)
             ax_uniform.set_xlim([xlim_start_uniform, xlim_end_uniform])
             ax_uniform.set_title(f"Channel {channel_index + 1}: Detected Peaks Only")
             ax_uniform.set_xlabel("Samples")
