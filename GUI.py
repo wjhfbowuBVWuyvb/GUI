@@ -24,7 +24,7 @@ if uploaded_file is not None:
 
     st.write(f"Number of channels detected: {num_channels}")
 
-    # Input Parameters (with default values from the earlier code)
+    # Input Parameters 
     lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
     highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
     order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
@@ -45,7 +45,7 @@ if uploaded_file is not None:
     else:
         st.warning("No channels selected")
 
-    # Plot raw signal (multi-channel or mono)
+    # Plot signal 
     st.subheader("Signal")
     signal_title = st.text_input("Enter title", value="Signal")
     fig_signal, ax_signal = plt.subplots(figsize=(12, 4))
@@ -113,7 +113,7 @@ if uploaded_file is not None:
             ax_peaks.legend(loc='upper right')
             st.pyplot(fig_peaks)
 
-            # Allow download of the detected peaks plot
+            # Allow download of the detected plot
             peaks_image_buffer = io.BytesIO()
             fig_peaks.savefig(peaks_image_buffer, format='png', dpi=300)
             peaks_image_buffer.seek(0)
@@ -124,7 +124,7 @@ if uploaded_file is not None:
             )
             continue
 
-        # Compute intervals between consecutive peaks
+        # Compute intervals between peaks
         intervals = np.diff(all_peaks)
 
         # Check if intervals are nearly uniform
@@ -154,7 +154,7 @@ if uploaded_file is not None:
                 file_name=f"channel_{channel_index + 1}_uniform_peaks.png"
             )
         else:
-            # Classify S1 and S2 peaks dynamically
+            # Classify S1 and S2 peaks 
             S1_peaks = []
             S2_peaks = []
 
@@ -231,7 +231,7 @@ if uploaded_file is not None:
                 file_name=f"channel_{channel_index + 1}_systolic_diastolic.png"
             )
 
-            # --- Plot 2: S1 Peaks Only ---
+            # --- Plot 2: S1 Peaks ---
             s1_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S1 Peaks")
             fig_s1, ax_s1 = plt.subplots(figsize=(12, 2.3))
             ax_s1.plot(s1_signal, label="S1 Peaks Signal", color="blue")
@@ -254,7 +254,7 @@ if uploaded_file is not None:
                 file_name=f"channel_{channel_index + 1}_S1_plot.png"
             )
 
-            # --- Plot 3: S2 Peaks Only ---
+            # --- Plot 3: S2 Peaks ---
             s2_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S2 Peaks")
             fig_s2, ax_s2 = plt.subplots(figsize=(12, 2.3))
             ax_s2.plot(s2_signal, label="S2 Peaks Signal", color="red")
