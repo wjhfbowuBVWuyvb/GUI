@@ -28,11 +28,12 @@ if uploaded_file is not None:
     lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
     highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
     order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
-    window_size = st.number_input("Window Size (samples)", min_value=None, max_value=None, value=500, step=10)
+    window_size = st.number_input("Window Size for S1 and S2 plots (samples)", min_value=None, max_value=None, value=500, step=10)
     threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=0.02 * fs, step=1.0)
     height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
     min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
-
+   
+    
     # Select channels to keep
     channels_to_keep = st.multiselect(
         "Select Channels to Keep", options=list(range(1, num_channels + 1)), default=list(range(1, num_channels + 1))
