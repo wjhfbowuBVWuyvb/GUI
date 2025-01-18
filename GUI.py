@@ -246,15 +246,15 @@ if uploaded_file is not None:
             s2_signal_no_gaps = []
 
             # Extract S1 signal
-           for peak in S1_peaks_no_gaps:
-               start = max(0, peak - window_size)
-               end = min(len(shannon_energy_envelope), peak + window_size)
-               s1_signal_no_gaps.append(shannon_energy_envelope[start:end])
+            for peak in S1_peaks_no_gaps:
+                start = max(0, peak - window_size)
+                end = min(len(shannon_energy_envelope), peak + window_size)
+                s1_signal_no_gaps.append(shannon_energy_envelope[start:end])
         
-           for peak in S2_peaks_no_gaps:
-               start = max(0, peak - window_size)
-               end = min(len(shannon_energy_envelope), peak + window_size)
-               s2_signal_no_gaps.append(shannon_energy_envelope[start:end])
+            for peak in S2_peaks_no_gaps:
+                start = max(0, peak - window_size)
+                end = min(len(shannon_energy_envelope), peak + window_size)
+                s2_signal_no_gaps.append(shannon_energy_envelope[start:end])
 
            s1_signal_no_gaps = np.hstack(s1_signal_no_gaps)
            s2_signal_no_gaps = np.hstack(s2_signal_no_gaps)
