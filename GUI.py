@@ -314,18 +314,25 @@ if uploaded_file is not None:
     final_s1_signal = np.column_stack(multi_channel_s1_signal)
     final_s2_signal = np.column_stack(multi_channel_s2_signal)
 
+    # Scale signals to 16-bit integer range
+    final_s1_signal_scaled = (final_s1_signal / np.max(np.abs(final_s1_signal)) * 32767).astype(np.int16)
+    final_s2_signal_scaled = (final_s2_signal / np.max(np.abs(final_s2_signal)) * 32767).astype(np.int16)
+
+    
     # Save the new WAV file
     wav_buffer = io.BytesIO()
     wavfile.write(wav_buffer, fs, new_signal.astype(np.int16))
     wav_buffer.seek(0)
     st.download_button("Download Processed Signal as WAV", wav_buffer, file_name="processed_signal.wav")
 
-    wav_buffer = io.BytesIO()
-    wavfile.write(wav_buffer, fs, final_s1_signal.astype(np.int16))
-    wav_buffer.seek(0)
-    st.download_button("Download S1 Signal as WAV", wav_buffer, file_name="S1.wav")
+    # Save S1 signal as multi-channel WAV
+    s1_wav_buffer = io.BytesIO()
+    wavfile.write(s1_wav_buffer, int(fs_downsampled), final_s1_signal_scaled)
+    s1_wav_buffer.seek(0)
+    st.download_button("Download Combined S1 Peaks WAV", s1_wav_buffer, file_name="combined_s1_peaks.wav")
 
-    wav_buffer = io.BytesIO()
-    wavfile.write(wav_buffer, fs, final_s2_signal.astype(np.int16))
-    wav_buffer.seek(0)
-    st.download_button("Download S2 Signal as WAV", wav_buffer, file_name="S2.wav")
+    # Save S2 signal as multi-channel WAV
+    s2_wav_buffer = io.BytesIO()
+    wavfile.write(s2_wav_buffer, int(fs_downsampled), final_s2_signal_scaled)
+    s2_wav_buffer.seek(0)
+    st.download_button("Download Combined S2 Peaks WAV", s2_wav_buffer, file_name="combined_s2_peaks.wav")
