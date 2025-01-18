@@ -33,6 +33,8 @@ if uploaded_file is not None:
     height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
     min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
    
+    multi_channel_s1_signal = []
+    multi_channel_s2_signal = []
     
     # Select channels to keep
     channels_to_keep = st.multiselect(
@@ -175,22 +177,36 @@ if uploaded_file is not None:
                         S1_peaks.append(all_peaks[i])
                         S2_peaks.append(all_peaks[i + 1])
 
-            S1_peaks = np.array(S1_peaks)
-            S2_peaks = np.array(S2_peaks)
+            S1_peaks = np.array(S1_peaks, dtype=int)
+            S2_peaks = np.array(S2_peaks, dtype=int)
+        
+        
+            S1_peaks = S1_peaks[S1_peaks < len(shannon_energy_envelope)]
+            S2_peaks = S2_peaks[S2_peaks < len(shannon_energy_envelope)]
+        
+        
+            S1_peaks_no_gaps = np.unique(S1_peaks)
+            S2_peaks_no_gaps = np.unique(S2_peaks)
+        
+        
+            s1_signal_no_gaps = []
+            s2_signal_no_gaps = []
 
-            # Extract S1 signal
-            s1_signal = np.zeros_like(shannon_energy_envelope)
-            for peak in S1_peaks:
+            for peak in S1_peaks_no_gaps:
                 start = max(0, peak - window_size)
                 end = min(len(shannon_energy_envelope), peak + window_size)
-                s1_signal[start:end] = shannon_energy_envelope[start:end]
-
-            # Extract S2 signal
-            s2_signal = np.zeros_like(shannon_energy_envelope)
-            for peak in S2_peaks:
+                s1_signal_no_gaps.append(shannon_energy_envelope[start:end])
+        
+            for peak in S2_peaks_no_gaps:
                 start = max(0, peak - window_size)
                 end = min(len(shannon_energy_envelope), peak + window_size)
-                s2_signal[start:end] = shannon_energy_envelope[start:end]
+                s2_signal_no_gaps.append(shannon_energy_envelope[start:end])
+        
+            s1_signal_no_gaps = np.hstack(s1_signal_no_gaps)
+            s2_signal_no_gaps = np.hstack(s2_signal_no_gaps)
+        
+            multi_channel_s1_signal.append(s1_signal_no_gaps)
+            multi_channel_s2_signal.append(s2_signal_no_gaps)
 
             # --- Plot 1: Systolic and Diastolic Rhythm ---
             rhythm_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Systolic and Diastolic Rhythm")
@@ -287,8 +303,29 @@ if uploaded_file is not None:
     else:
         new_signal = processed_signals[0]
 
+    min_length_s1 = min(s.shape[0] for s in multi_channel_s1_signal)
+    min_length_s2 = min(s.shape[0] for s in multi_channel_s2_signal)
+
+
+    multi_channel_s1_signal = [s[:min_length_s1] for s in multi_channel_s1_signal]
+    multi_channel_s2_signal = [s[:min_length_s2] for s in multi_channel_s2_signal]
+
+
+    final_s1_signal = np.column_stack(multi_channel_s1_signal)
+    final_s2_signal = np.column_stack(multi_channel_s2_signal)
+
     # Save the new WAV file
     wav_buffer = io.BytesIO()
     wavfile.write(wav_buffer, fs, new_signal.astype(np.int16))
     wav_buffer.seek(0)
     st.download_button("Download Processed Signal as WAV", wav_buffer, file_name="processed_signal.wav")
+
+    wav_buffer = io.BytesIO()
+    wavfile.write(wav_buffer, fs, final_s1_signal.astype(np.int16))
+    wav_buffer.seek(0)
+    st.download_button("Download S1 Signal as WAV", wav_buffer, file_name="S1.wav")
+
+    wav_buffer = io.BytesIO()
+    wavfile.write(wav_buffer, fs, final_s2_signal.astype(np.int16))
+    wav_buffer.seek(0)
+    st.download_button("Download S2 Signal as WAV", wav_buffer, file_name="S2.wav")
