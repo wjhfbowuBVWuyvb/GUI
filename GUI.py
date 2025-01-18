@@ -263,7 +263,7 @@ if uploaded_file is not None:
             multi_channel_s2_signal.append(s2_signal_no_gaps)
         # Murmur algorithm
             Murmur_intervals = []
-              if fs == 4000:
+            if fs == 4000:
                 exclusion_mask = np.zeros_like(shannon_energy_envelope, dtype=bool)
                 for peak in np.concatenate([S1_peaks, S2_peaks]):
                     start = max(0, peak - exclusion_zone)
