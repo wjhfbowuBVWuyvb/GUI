@@ -320,7 +320,7 @@ if uploaded_file is not None:
                 start = max(0, murmur - murmur_duration)
                 end = min(len(shannon_energy_envelope), murmur + murmur_duration)
                 plt.axvspan(start, end, color='green', alpha=0.2, label="Murmur Duration" if murmur == Murmur_peaks[0] else None)
-            xlim_start_rhythm = st.number_input(f"X-axis Start for Rhythm Plot (Channel {channel_index + 1})", min_value=0, max_value=len, value=0, step=1)
+            xlim_start_rhythm = st.number_input(f"X-axis Start for Rhythm Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=0, step=1)
             xlim_end_rhythm = st.number_input(f"X-axis End for Rhythm Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=int(time_axis_downsampled[-1] * fs), step=1)
             ax_rhythm.set_xlim([xlim_start_rhythm/fs, xlim_end_rhythm/fs])
 
