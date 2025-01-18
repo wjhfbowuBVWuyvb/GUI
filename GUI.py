@@ -310,6 +310,7 @@ if uploaded_file is not None:
             Murmur_peaks = [m[0] for m in Murmur_intervals if isinstance(m, tuple)]
 
             # --- Plot 1: Systolic and Diastolic Rhythm ---
+            time_axis_downsampled = np.arange(len(shannon_energy_envelope)) / fs_downsampled
             rhythm_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Systolic, Diastolic and Murmur")
             fig_rhythm, ax_rhythm = plt.subplots(figsize=(12, 6))
             ax_rhythm.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
