@@ -78,31 +78,31 @@ if uploaded_file is not None:
     b, a = butter(order, [lowcut / (fs/2), highcut / (fs/2)], btype='band')
     filtered_signal = filtfilt(b, a, signal)
     
-     # Filtered signal
-     st.subheader("Filtered Signal")
-     filtered_signal_title = st.text_input("Enter title", value="Filtered Signal", key="filtered_signal_title")
-     fig_filtered_signal, ax_signal = plt.subplots(figsize=(12, 6))
-     if num_channels > 1:
-        for i, channel_filtered_signal in enumerate(filtered_signals):
-            ax_signal.plot(time_axis, channel_filtered_signal, label=f"Channel {i + 1}")
-     else:
+    # Filtered signal
+    st.subheader("Filtered Signal")
+    filtered_signal_title = st.text_input("Enter title", value="Filtered Signal", key="filtered_signal_title")
+    fig_filtered_signal, ax_signal = plt.subplots(figsize=(12, 6))
+    if num_channels > 1:
+       for i, channel_filtered_signal in enumerate(filtered_signals):
+          ax_signal.plot(time_axis, channel_filtered_signal, label=f"Channel {i + 1}")
+    else:
         ax_signal.plot(filtered_signal, label="Mono Channel")
         
-     filtered_signal_length = len(filtered_signal) if num_channels == 1 else len(filtered_signals[0])
-]    xlim_start_filtered_signal = st.number_input("X-axis Start for Filtered Signal Plot", min_value=0, max_value=filtered_signal_length, value=0, step=1, key="start_filtered_signal")
-     xlim_end_filtered_signal = st.number_input("X-axis End for Filtered Signal Plot", min_value=0, max_value=filtered_signal_length, value=filtered_signal_length, step=1, key="end_filtered_signal")
-     ax_signal.set_xlim([xlim_start_filtered_signal / fs, xlim_end_filtered_signal / fs])
-     ax_signal.set_title(filtered_signal_title)
-     ax_signal.set_xlabel("Samples")
-     ax_signal.set_ylabel("Amplitude")
-     ax_signal.legend(loc="upper right")
-     st.pyplot(fig_filtered_signal)
+    filtered_signal_length = len(filtered_signal) if num_channels == 1 else len(filtered_signals[0])
+    xlim_start_filtered_signal = st.number_input("X-axis Start for Filtered Signal Plot", min_value=0, max_value=filtered_signal_length, value=0, step=1, key="start_filtered_signal")
+    xlim_end_filtered_signal = st.number_input("X-axis End for Filtered Signal Plot", min_value=0, max_value=filtered_signal_length, value=filtered_signal_length, step=1, key="end_filtered_signal")
+    ax_signal.set_xlim([xlim_start_filtered_signal / fs, xlim_end_filtered_signal / fs])
+    ax_signal.set_title(filtered_signal_title)
+    ax_signal.set_xlabel("Samples")
+    ax_signal.set_ylabel("Amplitude")
+    ax_signal.legend(loc="upper right")
+    st.pyplot(fig_filtered_signal)
         
      # Allow download of the raw signal plot
-     filtered_signal_image_buffer = io.BytesIO()
-     fig_filtered_signal.savefig(filtered_signal_image_buffer, format='pdf', dpi=300)
-     filtered_signal_image_buffer.seek(0)
-     st.download_button("Download Signal Plot", filtered_signal_image_buffer, file_name="filtered_signal.pdf")
+    filtered_signal_image_buffer = io.BytesIO()
+    fig_filtered_signal.savefig(filtered_signal_image_buffer, format='pdf', dpi=300)
+    filtered_signal_image_buffer.seek(0)
+    st.download_button("Download Signal Plot", filtered_signal_image_buffer, file_name="filtered_signal.pdf")
 
     multi_channel_s1_signal = []
     multi_channel_s2_signal = []
