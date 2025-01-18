@@ -23,6 +23,7 @@ if uploaded_file is not None:
         signals = [signal[:, i] for i in range(num_channels)]
 
     st.write(f"Number of channels detected: {num_channels}")
+    M = int(fs / 4000)
 
     # Input Parameters 
     lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
@@ -104,7 +105,6 @@ if uploaded_file is not None:
             snr = float('inf')
 
         # Bandpass filter
-        M = int(fs / 4000)
         b, a = butter(order, [lowcut / (fs/2), highcut / (fs/2)], btype='band')
         filtered_signal = filtfilt(b, a, signal)
         if len(filtered_signal.shape) == 1:  # Single-channel signal
