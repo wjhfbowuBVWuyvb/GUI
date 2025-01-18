@@ -251,9 +251,9 @@ if uploaded_file is not None:
             # --- Plot 2: S1 Peaks ---
             s1_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S1 Peaks")
             fig_s1, ax_s1 = plt.subplots(figsize=(12, 2.3))
-            ax_s1.plot(s1_signal, label="S1 Peaks Signal", color="blue")
+            ax_s1.plot(s1_signal_no_gaps, label="S1 Peaks Signal", color="blue")
             xlim_start_s1 = st.number_input(f"X-axis Start for S1 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=0, step=1)
-            xlim_end_s1 = st.number_input(f"X-axis End for S1 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(down_sampled), step=1)
+            xlim_end_s1 = st.number_input(f"X-axis End for S1 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(s1_signal_no_gaps), step=1)
             ax_s1.set_xlim([xlim_start_s1, xlim_end_s1])
             ax_s1.set_title(s1_title)
             ax_s1.set_xlabel("Samples")
@@ -274,9 +274,9 @@ if uploaded_file is not None:
             # --- Plot 3: S2 Peaks ---
             s2_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S2 Peaks")
             fig_s2, ax_s2 = plt.subplots(figsize=(12, 2.3))
-            ax_s2.plot(s2_signal, label="S2 Peaks Signal", color="red")
+            ax_s2.plot(s2_signal_no_gaps, label="S2 Peaks Signal", color="red")
             xlim_start_s2 = st.number_input(f"X-axis Start for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=0, step=1)
-            xlim_end_s2 = st.number_input(f"X-axis End for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(down_sampled), step=1)
+            xlim_end_s2 = st.number_input(f"X-axis End for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(s2_signal_no_gaps), step=1)
             ax_s2.set_xlim([xlim_start_s2, xlim_end_s2])
             ax_s2.set_title(s2_title)
             ax_s2.set_xlabel("Samples")
