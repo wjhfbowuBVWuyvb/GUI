@@ -130,23 +130,25 @@ if uploaded_file is not None:
         # Peak detection
         all_peaks, _ = find_peaks(shannon_energy_envelope, height=height, distance=min_distance)
 
+        # Filtered signal
         st.subheader("Filtered Signal")
-        filtered_signal_title = st.text_input("Enter title", value="Filtered Signal")
+        filtered_signal_title = st.text_input("Enter title", value="Filtered Signal", key="filtered_signal_title")
         fig_filtered_signal, ax_signal = plt.subplots(figsize=(12, 6))
         if num_channels > 1:
             for i, channel_filtered_signal in enumerate(filtered_signals):
-                ax_signal.plot(time_axis,channel_filtered_signal, label=f"Channel {i + 1}")
+                ax_signal.plot(time_axis, channel_filtered_signal, label=f"Channel {i + 1}")
         else:
-            ax_signal.plot(time_axis,filtered_signal, label="Mono Channel")
+            ax_signal.plot(time_axis, filtered_signal, label="Mono Channel")
+        
         filtered_signal_length = len(filtered_signal) if num_channels == 1 else len(filtered_signals[0])
-        xlim_start_filtered_signal = st.number_input("X-axis Start for Signal Plot", min_value=0, max_value=filtered_signal_length, value=0, step=1)
-        xlim_end_filtered_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=filtered_signal_length, value=int(time_axis[-1] * fs), step=1)
-        ax_signal.set_xlim([xlim_start_filtered_signal/fs, xlim_end_filtered_signal/fs])
-        ax_signal.set_title(filtered_signal_title)  
+        xlim_start_filtered_signal = st.number_input("X-axis Start for Filtered Signal Plot", min_value=0, max_value=filtered_signal_length, value=0, step=1, key="start_filtered_signal")
+        xlim_end_filtered_signal = st.number_input("X-axis End for Filtered Signal Plot", min_value=0, max_value=filtered_signal_length, value=int(time_axis[-1] * fs), step=1, key="end_filtered_signal")
+        ax_signal.set_xlim([xlim_start_filtered_signal / fs, xlim_end_filtered_signal / fs])
+        ax_signal.set_title(filtered_signal_title)
         ax_signal.set_xlabel("Time[s]")
         ax_signal.set_ylabel("Amplitude")
-        ax_signal.legend(loc='upper right')
-        st.pyplot(filtered_signal)
+        ax_signal.legend(loc="upper right")
+        st.pyplot(fig_filtered_signal)
         
         # Allow download of the raw signal plot
         filtered_signal_image_buffer = io.BytesIO()
