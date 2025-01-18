@@ -256,14 +256,14 @@ if uploaded_file is not None:
                 end = min(len(shannon_energy_envelope), peak + window_size)
                 s2_signal_no_gaps.append(shannon_energy_envelope[start:end])
 
-           s1_signal_no_gaps = np.hstack(s1_signal_no_gaps)
-           s2_signal_no_gaps = np.hstack(s2_signal_no_gaps)
+            s1_signal_no_gaps = np.hstack(s1_signal_no_gaps)
+            s2_signal_no_gaps = np.hstack(s2_signal_no_gaps)
         
-           multi_channel_s1_signal.append(s1_signal_no_gaps)
-           multi_channel_s2_signal.append(s2_signal_no_gaps)
+            multi_channel_s1_signal.append(s1_signal_no_gaps)
+            multi_channel_s2_signal.append(s2_signal_no_gaps)
         # Murmur algorithm
-           Murmur_intervals = []
-            if fs == 4000:
+            Murmur_intervals = []
+             if fs == 4000:
                 exclusion_mask = np.zeros_like(shannon_energy_envelope, dtype=bool)
                 for peak in np.concatenate([S1_peaks, S2_peaks]):
                     start = max(0, peak - exclusion_zone)
