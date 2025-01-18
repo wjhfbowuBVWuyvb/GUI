@@ -305,7 +305,7 @@ if uploaded_file is not None:
                         diastole_murmurs += diastole_start
                         Murmur_intervals.extend([(murmur, 'diastole') for murmur in diastole_murmurs])
         
-              Murmur_peaks = [m[0] for m in Murmur_intervals if isinstance(m, tuple)]
+            Murmur_peaks = [m[0] for m in Murmur_intervals if isinstance(m, tuple)]
 
             # --- Plot 1: Systolic and Diastolic Rhythm ---
             rhythm_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Systolic, Diastolic and Murmur")
