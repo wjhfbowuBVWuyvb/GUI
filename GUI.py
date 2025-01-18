@@ -62,7 +62,7 @@ if uploaded_file is not None:
         ax_signal.plot(time_axis,signal, label="Mono Channel")
     signal_length = len(signal) if num_channels == 1 else len(signals[0])
     xlim_start_signal = st.number_input("X-axis Start for Signal Plot", min_value=0, max_value=signal_length, value=0, step=1)
-    xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=signal_length, value=int(time_axis), step=1)
+    xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=signal_length, value=int(time_axis[]), step=1)
     ax_signal.set_xlim([xlim_start_signal, xlim_end_signal])
     ax_signal.set_title(signal_title)  
     ax_signal.set_xlabel("Time[s]")
