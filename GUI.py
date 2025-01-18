@@ -35,7 +35,7 @@ if uploaded_file is not None:
     min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
     murmur_duration = st.number_input("Murmur Duration(s)", min_value=None, max_value=None, value=int(0.15 * fs / M), step=1)
     snr_threshold = st.number_input("SNR threshold (dB)", min_value=None, max_value=None, value=50, step=1)
-    amplitude_threshold = st.number_input("Murmur amplitude threshold", min_value=None, max_value=None, value=0.04, step=1)
+    amplitude_threshold = st.number_input("Murmur amplitude threshold", min_value=None, max_value=None, value=int(0.04), step=1)
     exclusion_zone = st.number_input("exclusion zone around S1/S2", min_value=None, max_value=None, value=int(0.05 * fs / M), step=1)
     
     # Select channels to keep
