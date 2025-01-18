@@ -56,7 +56,7 @@ if uploaded_file is not None:
     fig_signal, ax_signal = plt.subplots(figsize=(12, 6))
     if num_channels > 1:
         for i, channel_signal in enumerate(signals):
-            ax_signal.plot(time_axis,channel_signal, label=f"Channel {i + 1}")
+            ax_signal.plot(channel_signal, label=f"Channel {i + 1}")
     else:
         ax_signal.plot(signal, label="Mono Channel")
     signal_length = len(signal) if num_channels == 1 else len(signals[0])
