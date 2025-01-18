@@ -24,6 +24,8 @@ if uploaded_file is not None:
 
     st.write(f"Number of channels detected: {num_channels}")
     M = int(fs / 4000)
+    multi_channel_s1_signal = []
+    multi_channel_s2_signal = []
 
     # Input Parameters 
     lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
