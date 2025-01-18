@@ -139,9 +139,9 @@ if uploaded_file is not None:
         else:
             ax_signal.plot(time_axis,filtered_signal, label="Mono Channel")
         filtered_signal_length = len(filtered_signal) if num_channels == 1 else len(filtered_signals[0])
-        xlim_start_signal = st.number_input("X-axis Start for Signal Plot", min_value=0, max_value=filtered_signal_length, value=0, step=1)
-        xlim_end_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=filtered_signal_length, value=time_axis, step=1)
-        ax_signal.set_xlim([xlim_start_signal, xlim_end_signal])
+        xlim_start_filtered_signal = st.number_input("X-axis Start for Signal Plot", min_value=0, max_value=filtered_signal_length, value=0, step=1)
+        xlim_end_filtered_signal = st.number_input("X-axis End for Signal Plot", min_value=0, max_value=filtered_signal_length, value=int(time_axis[-1] * fs), step=1)
+        ax_signal.set_xlim([xlim_start_filtered_signal/fs, xlim_end_filtered_signal/fs])
         ax_signal.set_title(filtered_signal_title)  
         ax_signal.set_xlabel("Time[s]")
         ax_signal.set_ylabel("Amplitude")
