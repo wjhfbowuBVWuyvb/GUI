@@ -79,7 +79,6 @@ if uploaded_file is not None:
     st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.pdf")
 
     # Plot mean signal (if multichannel)
-    if len(signals) > 1:
         st.subheader("Mean Signal of All Channels")
         mean_signal_title = st.text_input("Enter title for mean signal plot", value="Mean Signal")
         fig_mean, ax_mean = plt.subplots(figsize=(12, 4))
