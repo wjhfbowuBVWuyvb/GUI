@@ -129,26 +129,31 @@ if uploaded_file is not None:
     processed_signals = []
     for channel_index, signal in enumerate(signals):
         st.subheader(f"Processing Channel {channel_index + 1}...")
-    
+        
         # Retrieve parameters for this channel
         params = channel_params[channel_index]
-    
-        # Apply bandpass filter using per-channel parameters
+        
+        # Bandpass filter
         M = int(fs / 4000)
         b, a = butter(params["order"], [params["lowcut"] / (fs / 2), params["highcut"] / (fs / 2)], btype='band')
         filtered_signal = filtfilt(b, a, signal)
-    
-        # Downsample the filtered signal
+
+        # Downsampling
         down_sampled = filtered_signal[::M]
-    
+        fs_downsampled = fs / M
+
         # Normalize and compute Shannon energy
         normalised_signal = down_sampled / np.max(np.abs(down_sampled))
         shannon_energy = -normalised_signal**2 * np.log(normalised_signal**2 + 1e-10)
-    
-        # Peak detection using per-channel parameters
+
+        # Lowpass filter for Shannon energy envelope
+        lowpass_cutoff = 20
+        b_lowpass, a_lowpass = butter(order, lowpass_cutoff / (fs_downsampled/2), btype='low')
+        shannon_energy_envelope = filtfilt(b_lowpass, a_lowpass, shannon_energy)
+
+        # Peak detection
         all_peaks, _ = find_peaks(shannon_energy, height=params["height"], distance=params["min_distance"])
-    
-        # Continue with further signal processing as in the original code
+
         processed_signals.append(filtered_signal)
 
         # Check if there are enough peaks
