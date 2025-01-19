@@ -130,7 +130,7 @@ if uploaded_file is not None:
         if len(all_peaks) < 2:
             peak_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks")
             st.write(f"Channel {channel_index + 1}: Not enough peaks")
-            fig_peaks, ax_peaks = plt.subplots(figsize=(12, 4))
+            fig_peaks, ax_peaks = plt.subplots(figsize=(12, 6))
             ax_peaks.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_peaks.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
             signal_length = len(signal)
@@ -161,7 +161,7 @@ if uploaded_file is not None:
         if np.max(intervals) - np.min(intervals) < threshold:
             uniform_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks Only")
             st.write(f"Channel {channel_index + 1}: Uniform intervals detected")
-            fig_uniform, ax_uniform = plt.subplots(figsize=(12, 4))
+            fig_uniform, ax_uniform = plt.subplots(figsize=(12, 6))
             ax_uniform.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_uniform.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
             signal_length = len(signal)
@@ -237,7 +237,7 @@ if uploaded_file is not None:
 
             # --- Plot 1: Systolic and Diastolic Rhythm ---
             rhythm_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Systolic and Diastolic Rhythm")
-            fig_rhythm, ax_rhythm = plt.subplots(figsize=(12, 4))
+            fig_rhythm, ax_rhythm = plt.subplots(figsize=(12, 6))
             ax_rhythm.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_rhythm.scatter(S1_peaks, shannon_energy_envelope[S1_peaks], color='blue', label="S1 Peaks")
             ax_rhythm.scatter(S2_peaks, shannon_energy_envelope[S2_peaks], color='red', label="S2 Peaks")
@@ -277,7 +277,7 @@ if uploaded_file is not None:
 
             # --- Plot 2: S1 Peaks ---
             s1_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S1 Peaks")
-            fig_s1, ax_s1 = plt.subplots(figsize=(12, 2.3))
+            fig_s1, ax_s1 = plt.subplots(figsize=(12, 6))
             ax_s1.plot(s1_signal_no_gaps, label="S1 Peaks Signal", color="blue")
             xlim_start_s1 = st.number_input(f"X-axis Start for S1 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=0, step=1)
             xlim_end_s1 = st.number_input(f"X-axis End for S1 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(s1_signal_no_gaps), step=1)
@@ -300,7 +300,7 @@ if uploaded_file is not None:
 
             # --- Plot 3: S2 Peaks ---
             s2_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S2 Peaks")
-            fig_s2, ax_s2 = plt.subplots(figsize=(12, 4))
+            fig_s2, ax_s2 = plt.subplots(figsize=(12, 6))
             ax_s2.plot(s2_signal_no_gaps, label="S2 Peaks Signal", color="red")
             xlim_start_s2 = st.number_input(f"X-axis Start for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=0, step=1)
             xlim_end_s2 = st.number_input(f"X-axis End for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(s2_signal_no_gaps), step=1)
