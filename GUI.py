@@ -22,9 +22,14 @@ if uploaded_file is not None:
         num_channels = signal.shape[1]
         signals = [signal[:, i] for i in range(num_channels)]
 
-    st.write(f"Number of channels detected: {num_channels}")
-    channel_params = {}
-
+    # Input Parameters 
+    lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
+    highcut = st.number_input("High Cutoff Frequency (Hz)", min_value=None, max_value=None, value=800.0, step=1.0)
+    order = st.number_input("Butterworth Filter Order", min_value=None, max_value=None, value=2, step=1)
+    window_size = st.number_input("Window Size for S1 and S2 plots (samples)", min_value=None, max_value=None, value=500, step=10)
+    threshold = st.number_input("Uniform Interval Threshold (samples)", min_value=None, max_value=None, value=0.02 * fs, step=1.0)
+    height = st.number_input("Peak Detection Height", min_value=None, max_value=None, value=0.1, step=0.01)
+    min_distance = st.number_input("Minimum Distance Between Peaks (samples)", min_value=None, max_value=None, value=400, step=1)
    
     multi_channel_s1_signal = []
     multi_channel_s2_signal = []
@@ -96,38 +101,14 @@ if uploaded_file is not None:
         st.download_button("Download Mean Signal Plot", mean_signal_image_buffer, file_name="mean_signal.pdf")
 
 
-    # Create per-channel parameter controls
-    for i, channel_signal in enumerate(signals):
-        with st.expander(f"Channel {i + 1} Settings"):
-            lowcut = st.number_input(f"Low Cutoff Frequency (Hz) (Channel {i + 1})", min_value=0.0, value=10.0, step=1.0, key=f"lowcut_{i}")
-            highcut = st.number_input(f"High Cutoff Frequency (Hz) (Channel {i + 1})", min_value=0.0, value=800.0, step=1.0, key=f"highcut_{i}")
-            order = st.number_input(f"Butterworth Filter Order (Channel {i + 1})", min_value=1, value=2, step=1, key=f"order_{i}")
-            window_size = st.number_input(f"Window Size for S1/S2 Plots (samples) (Channel {i + 1})", min_value=1, value=500, step=10, key=f"window_{i}")
-            threshold = st.number_input(f"Uniform Interval Threshold (samples) (Channel {i + 1})", min_value=0.0, value=0.02 * fs, step=1.0, key=f"threshold_{i}")
-            height = st.number_input(f"Peak Detection Height (Channel {i + 1})", min_value=0.0, value=0.1, step=0.01, key=f"height_{i}")
-            min_distance = st.number_input(f"Minimum Distance Between Peaks (samples) (Channel {i + 1})", min_value=0, value=400, step=1, key=f"min_distance_{i}")
-    
-            # Store parameters for this channel
-            channel_params[i] = {
-                "lowcut": lowcut,
-                "highcut": highcut,
-                "order": order,
-                "window_size": window_size,
-                "threshold": threshold,
-                "height": height,
-                "min_distance": min_distance,
-            }
     # Process each channel using individual parameters
     processed_signals = []
     for channel_index, signal in enumerate(signals):
         st.subheader(f"Processing Channel {channel_index + 1}...")
         
-        # Retrieve parameters for this channel
-        params = channel_params[channel_index]
-        
         # Bandpass filter
         M = int(fs / 4000)
-        b, a = butter(params["order"], [params["lowcut"] / (fs / 2), params["highcut"] / (fs / 2)], btype='band')
+        b, a = butter(order, [lowcut / (fs / 2), highcut / (fs / 2)], btype='band')
         filtered_signal = filtfilt(b, a, signal)
 
         # Downsampling
@@ -144,9 +125,7 @@ if uploaded_file is not None:
         shannon_energy_envelope = filtfilt(b_lowpass, a_lowpass, shannon_energy)
 
         # Peak detection
-        all_peaks, _ = find_peaks(shannon_energy, height=params["height"], distance=params["min_distance"])
-
-        processed_signals.append(filtered_signal)
+        all_peaks, _ = find_peaks(shannon_energy, height=height, distance=min_distance)
 
         # Check if there are enough peaks
         if len(all_peaks) < 2:
