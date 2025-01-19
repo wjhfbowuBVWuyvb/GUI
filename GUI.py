@@ -79,25 +79,25 @@ if uploaded_file is not None:
     st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.pdf")
 
     # Plot mean signal (if multichannel)
-        st.subheader("Mean Signal of All Channels")
-        mean_signal_title = st.text_input("Enter title for mean signal plot", value="Mean Signal")
-        fig_mean, ax_mean = plt.subplots(figsize=(12, 4))
-        ax_mean.plot(mean_signal, label="Mean Signal", color="purple")
-        mean_signal_length = len(mean_signal)
-        xlim_start_mean = st.number_input("X-axis Start for Mean Signal Plot", min_value=0, max_value=mean_signal_length, value=0, step=1)
-        xlim_end_mean = st.number_input("X-axis End for Mean Signal Plot", min_value=0, max_value=mean_signal_length, value=mean_signal_length, step=1)
-        ax_mean.set_xlim([xlim_start_mean, xlim_end_mean])
-        ax_mean.set_title(mean_signal_title)
-        ax_mean.set_xlabel("Samples")
-        ax_mean.set_ylabel("Amplitude")
-        ax_mean.legend(loc='upper right')
-        st.pyplot(fig_mean)
+     st.subheader("Mean Signal of All Channels")
+     mean_signal_title = st.text_input("Enter title for mean signal plot", value="Mean Signal")
+     fig_mean, ax_mean = plt.subplots(figsize=(12, 4))
+     ax_mean.plot(mean_signal, label="Mean Signal", color="purple")
+     mean_signal_length = len(mean_signal)
+     xlim_start_mean = st.number_input("X-axis Start for Mean Signal Plot", min_value=0, max_value=mean_signal_length, value=0, step=1)
+     xlim_end_mean = st.number_input("X-axis End for Mean Signal Plot", min_value=0, max_value=mean_signal_length, value=mean_signal_length, step=1)
+     ax_mean.set_xlim([xlim_start_mean, xlim_end_mean])
+     ax_mean.set_title(mean_signal_title)
+     ax_mean.set_xlabel("Samples")
+     ax_mean.set_ylabel("Amplitude")
+     ax_mean.legend(loc='upper right')
+     st.pyplot(fig_mean)
     
-        # Allow download of the mean signal plot
-        mean_signal_image_buffer = io.BytesIO()
-        fig_mean.savefig(mean_signal_image_buffer, format='pdf', dpi=300)
-        mean_signal_image_buffer.seek(0)
-        st.download_button("Download Mean Signal Plot", mean_signal_image_buffer, file_name="mean_signal.pdf")
+     # Allow download of the mean signal plot
+     mean_signal_image_buffer = io.BytesIO()
+     fig_mean.savefig(mean_signal_image_buffer, format='pdf', dpi=300)
+     mean_signal_image_buffer.seek(0)
+     st.download_button("Download Mean Signal Plot", mean_signal_image_buffer, file_name="mean_signal.pdf")
 
 
     # Process each channel using individual parameters
