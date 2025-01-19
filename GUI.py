@@ -100,14 +100,14 @@ if uploaded_file is not None:
     st.download_button("Download Mean Signal Plot", mean_signal_image_buffer, file_name="mean_signal.pdf")
 
 
-    # Process each channel using individual parameters
+   # Process each channel
     processed_signals = []
     for channel_index, signal in enumerate(signals):
         st.subheader(f"Processing Channel {channel_index + 1}...")
-        
+
         # Bandpass filter
         M = int(fs / 4000)
-        b, a = butter(order, [lowcut / (fs / 2), highcut / (fs / 2)], btype='band')
+        b, a = butter(order, [lowcut / (fs/2), highcut / (fs/2)], btype='band')
         filtered_signal = filtfilt(b, a, signal)
 
         # Downsampling
@@ -124,7 +124,7 @@ if uploaded_file is not None:
         shannon_energy_envelope = filtfilt(b_lowpass, a_lowpass, shannon_energy)
 
         # Peak detection
-        all_peaks, _ = find_peaks(shannon_energy, height=height, distance=min_distance)
+        all_peaks, _ = find_peaks(shannon_energy_envelope, height=height, distance=min_distance)
 
         # Check if there are enough peaks
         if len(all_peaks) < 2:
