@@ -272,7 +272,7 @@ if uploaded_file is not None:
             st.download_button(
                 f"Download Systolic and Diastolic Plot for Channel {channel_index + 1}",
                 rhythm_image_buffer,
-                file_name=f"channel_{channel_index + 1}_systolic_diastolic.png"
+                file_name=f"channel_{channel_index + 1}_systolic_diastolic.pdf"
             )
 
             # --- Plot 2: S1 Peaks ---
