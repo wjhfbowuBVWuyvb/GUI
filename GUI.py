@@ -23,6 +23,7 @@ if uploaded_file is not None:
         signals = [signal[:, i] for i in range(num_channels)]
 
     st.write(f"Number of channels detected: {num_channels}")
+    channel_params = {}
 
     # Input Parameters 
     lowcut = st.number_input("Low Cutoff Frequency (Hz)", min_value=None, max_value=None, value=10.0, step=1.0)
@@ -48,6 +49,13 @@ if uploaded_file is not None:
     else:
         st.warning("No channels selected")
 
+    # Compute the mean of all channels if multichannel
+    if len(signals) > 1:
+        mean_signal = np.mean(signals, axis=0)
+    else:
+        mean_signal = signals[0]  # If single-channel, mean is the signal itself
+
+
     # Plot signal 
     st.subheader("Signal")
     signal_title = st.text_input("Enter title", value="Signal")
@@ -69,41 +77,85 @@ if uploaded_file is not None:
     
     # Allow download of the raw signal plot
     signal_image_buffer = io.BytesIO()
-    fig_signal.savefig(signal_image_buffer, format='png', dpi=300)
+    fig_signal.savefig(signal_image_buffer, format='pdf', dpi=300)
     signal_image_buffer.seek(0)
-    st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.png")
+    st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.pdf")
+
+    # Plot mean signal (if multichannel)
+    if len(signals) > 1:
+        st.subheader("Mean Signal of All Channels")
+        mean_signal_title = st.text_input("Enter title for mean signal plot", value="Mean Signal")
+        fig_mean, ax_mean = plt.subplots(figsize=(12, 4))
+        ax_mean.plot(mean_signal, label="Mean Signal", color="purple")
+        mean_signal_length = len(mean_signal)
+        xlim_start_mean = st.number_input("X-axis Start for Mean Signal Plot", min_value=0, max_value=mean_signal_length, value=0, step=1)
+        xlim_end_mean = st.number_input("X-axis End for Mean Signal Plot", min_value=0, max_value=mean_signal_length, value=mean_signal_length, step=1)
+        ax_mean.set_xlim([xlim_start_mean, xlim_end_mean])
+        ax_mean.set_title(mean_signal_title)
+        ax_mean.set_xlabel("Samples")
+        ax_mean.set_ylabel("Amplitude")
+        ax_mean.legend(loc='upper right')
+        st.pyplot(fig_mean)
     
-    # Process each channel
+        # Allow download of the mean signal plot
+        mean_signal_image_buffer = io.BytesIO()
+        fig_mean.savefig(mean_signal_image_buffer, format='pdf', dpi=300)
+        mean_signal_image_buffer.seek(0)
+        st.download_button("Download Mean Signal Plot", mean_signal_image_buffer, file_name="mean_signal.pdf")
+
+
+    # Create per-channel parameter controls
+    for i, channel_signal in enumerate(signals):
+        with st.expander(f"Channel {i + 1} Settings"):
+            lowcut = st.number_input(f"Low Cutoff Frequency (Hz) (Channel {i + 1})", min_value=0.0, value=10.0, step=1.0, key=f"lowcut_{i}")
+            highcut = st.number_input(f"High Cutoff Frequency (Hz) (Channel {i + 1})", min_value=0.0, value=800.0, step=1.0, key=f"highcut_{i}")
+            order = st.number_input(f"Butterworth Filter Order (Channel {i + 1})", min_value=1, value=2, step=1, key=f"order_{i}")
+            window_size = st.number_input(f"Window Size for S1/S2 Plots (samples) (Channel {i + 1})", min_value=1, value=500, step=10, key=f"window_{i}")
+            threshold = st.number_input(f"Uniform Interval Threshold (samples) (Channel {i + 1})", min_value=0.0, value=0.02 * fs, step=1.0, key=f"threshold_{i}")
+            height = st.number_input(f"Peak Detection Height (Channel {i + 1})", min_value=0.0, value=0.1, step=0.01, key=f"height_{i}")
+            min_distance = st.number_input(f"Minimum Distance Between Peaks (samples) (Channel {i + 1})", min_value=0, value=400, step=1, key=f"min_distance_{i}")
+    
+            # Store parameters for this channel
+            channel_params[i] = {
+                "lowcut": lowcut,
+                "highcut": highcut,
+                "order": order,
+                "window_size": window_size,
+                "threshold": threshold,
+                "height": height,
+                "min_distance": min_distance,
+            }
+    # Process each channel using individual parameters
     processed_signals = []
     for channel_index, signal in enumerate(signals):
         st.subheader(f"Processing Channel {channel_index + 1}...")
-
-        # Bandpass filter
+    
+        # Retrieve parameters for this channel
+        params = channel_params[channel_index]
+    
+        # Apply bandpass filter using per-channel parameters
         M = int(fs / 4000)
-        b, a = butter(order, [lowcut / (fs/2), highcut / (fs/2)], btype='band')
+        b, a = butter(params["order"], [params["lowcut"] / (fs / 2), params["highcut"] / (fs / 2)], btype='band')
         filtered_signal = filtfilt(b, a, signal)
-
-        # Downsampling
+    
+        # Downsample the filtered signal
         down_sampled = filtered_signal[::M]
-        fs_downsampled = fs / M
-
+    
         # Normalize and compute Shannon energy
         normalised_signal = down_sampled / np.max(np.abs(down_sampled))
         shannon_energy = -normalised_signal**2 * np.log(normalised_signal**2 + 1e-10)
-
-        # Lowpass filter for Shannon energy envelope
-        lowpass_cutoff = 20
-        b_lowpass, a_lowpass = butter(order, lowpass_cutoff / (fs_downsampled/2), btype='low')
-        shannon_energy_envelope = filtfilt(b_lowpass, a_lowpass, shannon_energy)
-
-        # Peak detection
-        all_peaks, _ = find_peaks(shannon_energy_envelope, height=height, distance=min_distance)
+    
+        # Peak detection using per-channel parameters
+        all_peaks, _ = find_peaks(shannon_energy, height=params["height"], distance=params["min_distance"])
+    
+        # Continue with further signal processing as in the original code
+        processed_signals.append(filtered_signal)
 
         # Check if there are enough peaks
         if len(all_peaks) < 2:
             peak_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks")
             st.write(f"Channel {channel_index + 1}: Not enough peaks")
-            fig_peaks, ax_peaks = plt.subplots(figsize=(12, 2.3))
+            fig_peaks, ax_peaks = plt.subplots(figsize=(12, 4))
             ax_peaks.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_peaks.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
             signal_length = len(signal)
@@ -118,12 +170,12 @@ if uploaded_file is not None:
 
             # Allow download of the detected plot
             peaks_image_buffer = io.BytesIO()
-            fig_peaks.savefig(peaks_image_buffer, format='png', dpi=300)
+            fig_peaks.savefig(peaks_image_buffer, format='pdf', dpi=300)
             peaks_image_buffer.seek(0)
             st.download_button(
                 f"Download Peaks Plot for Channel {channel_index + 1}",
                 peaks_image_buffer,
-                file_name=f"channel_{channel_index + 1}_peaks.png"
+                file_name=f"channel_{channel_index + 1}_peaks.pdf"
             )
             continue
 
@@ -134,7 +186,7 @@ if uploaded_file is not None:
         if np.max(intervals) - np.min(intervals) < threshold:
             uniform_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks Only")
             st.write(f"Channel {channel_index + 1}: Uniform intervals detected")
-            fig_uniform, ax_uniform = plt.subplots(figsize=(12, 2.3))
+            fig_uniform, ax_uniform = plt.subplots(figsize=(12, 4))
             ax_uniform.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_uniform.scatter(all_peaks, shannon_energy_envelope[all_peaks], color='green', label="Detected Peaks")
             signal_length = len(signal)
@@ -149,12 +201,12 @@ if uploaded_file is not None:
 
             # Allow download of uniform interval plot
             uniform_image_buffer = io.BytesIO()
-            fig_uniform.savefig(uniform_image_buffer, format='png', dpi=300)
+            fig_uniform.savefig(uniform_image_buffer, format='pdf', dpi=300)
             uniform_image_buffer.seek(0)
             st.download_button(
                 f"Download Uniform Peaks Plot for Channel {channel_index + 1}",
                 uniform_image_buffer,
-                file_name=f"channel_{channel_index + 1}_uniform_peaks.png"
+                file_name=f"channel_{channel_index + 1}_uniform_peaks.pdf"
             )
         else:
             # Classify S1 and S2 peaks 
@@ -210,7 +262,7 @@ if uploaded_file is not None:
 
             # --- Plot 1: Systolic and Diastolic Rhythm ---
             rhythm_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Systolic and Diastolic Rhythm")
-            fig_rhythm, ax_rhythm = plt.subplots(figsize=(12, 2.3))
+            fig_rhythm, ax_rhythm = plt.subplots(figsize=(12, 4))
             ax_rhythm.plot(shannon_energy_envelope, label="Shannon Energy Envelope", color="black")
             ax_rhythm.scatter(S1_peaks, shannon_energy_envelope[S1_peaks], color='blue', label="S1 Peaks")
             ax_rhythm.scatter(S2_peaks, shannon_energy_envelope[S2_peaks], color='red', label="S2 Peaks")
@@ -240,7 +292,7 @@ if uploaded_file is not None:
 
             # Allow download of the systolic and diastolic rhythm plot
             rhythm_image_buffer = io.BytesIO()
-            fig_rhythm.savefig(rhythm_image_buffer, format='png', dpi=300)
+            fig_rhythm.savefig(rhythm_image_buffer, format='pdf', dpi=300)
             rhythm_image_buffer.seek(0)
             st.download_button(
                 f"Download Systolic and Diastolic Plot for Channel {channel_index + 1}",
@@ -263,17 +315,17 @@ if uploaded_file is not None:
 
             # Allow download of S1 plot
             S1_image = io.BytesIO()
-            fig_s1.savefig(S1_image, format='png', dpi=300)
+            fig_s1.savefig(S1_image, format='pdf', dpi=300)
             S1_image.seek(0)
             st.download_button(
                 f"Download S1 plot for Channel {channel_index + 1}",
                 S1_image,
-                file_name=f"channel_{channel_index + 1}_S1_plot.png"
+                file_name=f"channel_{channel_index + 1}_S1_plot.pdf"
             )
 
             # --- Plot 3: S2 Peaks ---
             s2_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: S2 Peaks")
-            fig_s2, ax_s2 = plt.subplots(figsize=(12, 2.3))
+            fig_s2, ax_s2 = plt.subplots(figsize=(12, 4))
             ax_s2.plot(s2_signal_no_gaps, label="S2 Peaks Signal", color="red")
             xlim_start_s2 = st.number_input(f"X-axis Start for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=0, step=1)
             xlim_end_s2 = st.number_input(f"X-axis End for S2 Plot (Channel {channel_index + 1})", min_value=0, max_value=len(signal), value=len(s2_signal_no_gaps), step=1)
@@ -286,12 +338,12 @@ if uploaded_file is not None:
 
             # Allow download of S2 plot
             S2_image = io.BytesIO()
-            fig_s2.savefig(S2_image, format='png', dpi=300)
+            fig_s2.savefig(S2_image, format='pdf', dpi=300)
             S2_image.seek(0)
             st.download_button(
                 f"Download S2 plot for Channel {channel_index + 1}",
                 S2_image,
-                file_name=f"channel_{channel_index + 1}_S2_plot.png"
+                file_name=f"channel_{channel_index + 1}_S2_plot.pdf"
             )
 
         # Append processed signals
