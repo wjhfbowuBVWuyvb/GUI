@@ -126,7 +126,6 @@ if uploaded_file is not None:
         # Peak detection
         all_peaks, _ = find_peaks(shannon_energy_envelope, height=height, distance=min_distance)
 
-    
         # Check if there are enough peaks
         if len(all_peaks) < 2:
             peak_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks")
@@ -144,13 +143,16 @@ if uploaded_file is not None:
             ax_peaks.legend(loc='upper right')
             st.pyplot(fig_peaks)
 
-            #Allow download of the detected plot
+            # Allow download of the detected plot
+            peaks_image_buffer = io.BytesIO()
+            fig_peaks.savefig(peaks_image_buffer, format='pdf', dpi=300)
+            peaks_image_buffer.seek(0)
             st.download_button(
-            label="Download Filtered Signal",
-            data=filtered_signal_image_buffer,
-            file_name="filtered_signal.pdf",
-            key=f"download_filtered_{channel_index}")
-
+                f"Download Peaks Plot for Channel {channel_index + 1}",
+                peaks_image_buffer,
+                file_name=f"channel_{channel_index + 1}_peaks.pdf"
+            )
+            continue
 
         # Compute intervals between peaks
         intervals = np.diff(all_peaks)
