@@ -126,41 +126,7 @@ if uploaded_file is not None:
         # Peak detection
         all_peaks, _ = find_peaks(shannon_energy_envelope, height=height, distance=min_distance)
 
-        # Plot filtered signal
-        st.subheader("Filtered Signal")
-        filtered_signal_title = st.text_input("Enter title for filtered signal plot", value="Filtered Signal")
-        
-        # Create the plot
-        fig_filtered, ax_filtered = plt.subplots(figsize=(12, 4))
-        ax_filtered.plot(filtered_signal, label="Filtered Signal", color="orange")
-        
-        # Configure x-axis limits
-        filtered_signal_length = len(filtered_signal)
-        xlim_start_filtered = st.number_input("X-axis Start for Filtered Signal Plot", 
-                                               min_value=0, 
-                                               max_value=filtered_signal_length, 
-                                               value=0, step=1)
-        xlim_end_filtered = st.number_input("X-axis End for Filtered Signal Plot", 
-                                             min_value=0, 
-                                             max_value=filtered_signal_length, 
-                                             value=filtered_signal_length, step=1)
-        ax_filtered.set_xlim([xlim_start_filtered, xlim_end_filtered])
-        
-        # Set titles and labels
-        ax_filtered.set_title(filtered_signal_title)
-        ax_filtered.set_xlabel("Samples")
-        ax_filtered.set_ylabel("Amplitude")
-        ax_filtered.legend(loc='upper right')
-        
-        # Display the plot
-        st.pyplot(fig_filtered)
-        
-        # Allow download of the filtered signal plot
-        filtered_signal_image_buffer = io.BytesIO()
-        fig_filtered.savefig(filtered_signal_image_buffer, format='pdf', dpi=300)
-        filtered_signal_image_buffer.seek(0)
-        st.download_button("Download Filtered Signal Plot", filtered_signal_image_buffer, file_name="filtered_signal.pdf")
-        
+    
         # Check if there are enough peaks
         if len(all_peaks) < 2:
             peak_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks")
