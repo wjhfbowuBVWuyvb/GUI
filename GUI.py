@@ -184,16 +184,13 @@ if uploaded_file is not None:
             ax_peaks.legend(loc='upper right')
             st.pyplot(fig_peaks)
 
-            # Allow download of the detected plot
-            peaks_image_buffer = io.BytesIO()
-            fig_peaks.savefig(peaks_image_buffer, format='pdf', dpi=300)
-            peaks_image_buffer.seek(0)
+            #Allow download of the detected plot
             st.download_button(
-                f"Download Peaks Plot for Channel {channel_index + 1}",
-                peaks_image_buffer,
-                file_name=f"channel_{channel_index + 1}_peaks.pdf"
-            )
-            continue
+            label="Download Filtered Signal",
+            data=filtered_signal_image_buffer,
+            file_name="filtered_signal.pdf",
+            key=f"download_filtered_{channel_index}")
+
 
         # Compute intervals between peaks
         intervals = np.diff(all_peaks)
