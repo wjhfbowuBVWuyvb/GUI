@@ -160,13 +160,7 @@ if uploaded_file is not None:
         fig_filtered.savefig(filtered_signal_image_buffer, format='pdf', dpi=300)
         filtered_signal_image_buffer.seek(0)
         st.download_button("Download Filtered Signal Plot", filtered_signal_image_buffer, file_name="filtered_signal.pdf")
-
         
-        # Allow download of the raw signal plot
-        signal_image_buffer = io.BytesIO()
-        fig_signal.savefig(signal_image_buffer, format='pdf', dpi=300)
-        signal_image_buffer.seek(0)
-        st.download_button("Download Signal Plot", signal_image_buffer, file_name="signal.pdf")
         # Check if there are enough peaks
         if len(all_peaks) < 2:
             peak_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks")
