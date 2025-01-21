@@ -126,6 +126,40 @@ if uploaded_file is not None:
         # Peak detection
         all_peaks, _ = find_peaks(shannon_energy_envelope, height=height, distance=min_distance)
 
+        # Plot filtered signal
+        st.subheader(f"Filtered Signal for Channel {channel_index + 1}")
+        filtered_signal_title = st.text_input(
+            f"Enter title for Filtered Signal Plot (Channel {channel_index + 1})",
+            value=f"Channel {channel_index + 1}: Filtered Signal"
+        )
+        fig_filtered, ax_filtered = plt.subplots(figsize=(12, 4))
+        ax_filtered.plot(filtered_signal, label="Filtered Signal", color="green")
+        filtered_signal_length = len(filtered_signal)
+        xlim_start_filtered = st.number_input(
+            f"X-axis Start for Filtered Signal Plot (Channel {channel_index + 1})",
+            min_value=0, max_value=filtered_signal_length, value=0, step=1
+        )
+        xlim_end_filtered = st.number_input(
+            f"X-axis End for Filtered Signal Plot (Channel {channel_index + 1})",
+            min_value=0, max_value=filtered_signal_length, value=filtered_signal_length, step=1
+        )
+        ax_filtered.set_xlim([xlim_start_filtered, xlim_end_filtered])
+        ax_filtered.set_title(filtered_signal_title)
+        ax_filtered.set_xlabel("Samples")
+        ax_filtered.set_ylabel("Amplitude")
+        ax_filtered.legend(loc='upper right')
+        st.pyplot(fig_filtered)
+        
+        # Allow download of the filtered signal plot
+        filtered_image_buffer = io.BytesIO()
+        fig_filtered.savefig(filtered_image_buffer, format='pdf', dpi=300)
+        filtered_image_buffer.seek(0)
+        st.download_button(
+            f"Download Filtered Signal Plot for Channel {channel_index + 1}",
+            filtered_image_buffer,
+            file_name=f"filtered_signal_channel_{channel_index + 1}.pdf"
+        )
+
         # Check if there are enough peaks
         if len(all_peaks) < 2:
             peak_title = st.text_input("Enter title", value=f"Channel {channel_index + 1}: Detected Peaks")
